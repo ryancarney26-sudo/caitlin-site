@@ -13,7 +13,7 @@ Static site. No build step. The files in this folder are the whole site.
 1. On GitHub, create a new **public** repository called `caitlin-site`. No README, no licence.
 2. Push this folder to it:
 
-       git remote add origin https://github.com/<username>/caitlin-site.git
+       git remote add origin https://github.com/ryancarney26-sudo/caitlin-site.git
        git push -u origin main
 
 3. In the repository: **Settings, Pages**. Source: "Deploy from a branch". Branch `main`, folder `/ (root)`. Save.
@@ -32,9 +32,9 @@ then add these. Leave TTL at the default.
 | A     | @    | 185.199.109.153            |
 | A     | @    | 185.199.110.153            |
 | A     | @    | 185.199.111.153            |
-| CNAME | www  | `<username>.github.io`     |
+| CNAME | www  | `ryancarney26-sudo.github.io`     |
 
-Replace `<username>` with the GitHub username that owns the repository.
+Replace `ryancarney26-sudo` with the GitHub username that owns the repository.
 These four addresses are GitHub Pages' published ones. Changes usually show within an hour.
 
 Do **not** switch the domain's nameservers to Cloudflare. New Cloudflare domains block AI crawlers
