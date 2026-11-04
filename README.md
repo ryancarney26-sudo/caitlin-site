@@ -6,8 +6,8 @@ in `assets/site.css`, no JavaScript.
 ## Branches
 
 - `main` is what GitHub Pages serves at caitlincarneytattoo.co.uk. Only facts we are sure of.
-- `v2-subjects` is the **nine-page draft** built around the search map: home, one page per kind
-  of work (portraits, Christian pieces, script, memorial, walk-ins), prices, where clients come
+- `v2-subjects` is the **eight-page draft** built around the search map: home, one page per kind
+  of work (portraits, Christian pieces, script, walk-ins), prices, where clients come
   from, and about. Yellow slots mark what still needs Caitlin's words, a price or a photo.
   It merges into `main` once the slots are filled and Caitlin has approved it.
 
