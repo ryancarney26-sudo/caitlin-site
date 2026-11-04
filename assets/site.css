@@ -1,0 +1,310 @@
+/* Caitlin Carney Tattoo, shared styles for every page.
+   Design plan
+   Colour: paper #ffffff, ink #000000, body text #222222, stencil purple #5a3a8c
+           (the colour a transfer stencil leaves on skin), rule #d9d6d1.
+   Type:   Big Shoulders Display 900 for the name and titles (sign-painter condensed),
+           Libre Franklin 400/600 for everything else.
+   Layout: one left-aligned column. Text measures about 62 characters.
+   Rule:   the name is the only loud thing. Photos bring the colour. */
+
+:root {
+  --paper: #ffffff;
+  --ink: #000000;
+  --text: #222222;
+  --muted: #5c5a57;
+  --stencil: #5a3a8c;
+  --rule: #d9d6d1;
+  --display: 'Big Shoulders Display', 'Impact', 'Arial Narrow', sans-serif;
+  --body: 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;
+  --measure: 62ch;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+a { color: var(--stencil); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { color: var(--ink); }
+:focus-visible { outline: 3px solid var(--stencil); outline-offset: 3px; }
+
+.skip {
+  position: absolute; left: -999px; top: 0;
+  background: var(--ink); color: var(--paper); padding: 0.5rem 1rem;
+}
+.skip:focus { left: var(--gutter); z-index: 10; }
+
+/* Header bar */
+.bar {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem;
+  align-items: baseline; justify-content: space-between;
+  padding: 1rem var(--gutter);
+  border-bottom: 1px solid var(--rule);
+}
+.bar .left { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
+.bar .brand {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+}
+.bar .brand:hover { color: var(--stencil); }
+.bar .where { color: var(--muted); font-size: 1rem; }
+.bar nav { display: flex; flex-wrap: wrap; gap: 1.25rem; font-weight: 600; font-size: 1rem; }
+.bar nav a { text-decoration: none; color: var(--ink); }
+.bar nav a:hover, .bar nav a[aria-current="page"] { color: var(--stencil); }
+
+/* Home hero: the name, set huge */
+.hero {
+  padding: clamp(2rem, 6vw, 4.5rem) var(--gutter) clamp(2rem, 5vw, 3.5rem);
+}
+.hero h1 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(4rem, 15vw, 11rem);
+  line-height: 0.88;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0;
+  max-width: 9ch;
+  text-wrap: balance;
+}
+.stencil-line {
+  display: block;
+  width: min(100%, 38rem);
+  height: 18px;
+  margin: 0.75rem 0 1.5rem;
+  overflow: visible;
+}
+.stencil-line path {
+  fill: none;
+  stroke: var(--stencil);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 14 9;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero .stencil-line path {
+    stroke-dasharray: 14 9 1200;
+    stroke-dashoffset: 1200;
+    animation: draw 1.6s ease-out 0.2s forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+}
+.hero .tagline {
+  font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+  line-height: 1.4;
+  max-width: 30ch;
+  margin: 0 0 1.75rem;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* Inner page head */
+.page-head {
+  padding: clamp(2rem, 5vw, 3.5rem) var(--gutter) clamp(1.5rem, 4vw, 2.5rem);
+}
+.page-head h1 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(2.8rem, 8vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0;
+  max-width: 14ch;
+  text-wrap: balance;
+}
+.page-head .stencil-line { width: min(100%, 24rem); }
+.page-head .lead {
+  font-size: clamp(1.2rem, 2.2vw, 1.4rem);
+  line-height: 1.45;
+  max-width: 44ch;
+  margin: 0 0 1.5rem;
+  color: var(--ink);
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.btn {
+  display: inline-block;
+  padding: 0.8rem 1.4rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  background: var(--paper);
+}
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: var(--stencil); border-color: var(--stencil); color: var(--paper); }
+.btn:hover { border-color: var(--stencil); color: var(--stencil); }
+
+section { padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter); border-top: 1px solid var(--rule); }
+section > h2 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0 0 1.25rem;
+}
+.prose { max-width: var(--measure); }
+.prose p { margin: 0 0 1rem; }
+.prose p:last-child { margin-bottom: 0; }
+.prose h3 { font-size: 1.15rem; margin: 1.75rem 0 0.5rem; }
+.prose ul { padding-left: 1.2rem; margin: 0 0 1rem; }
+.prose li { margin: 0 0 0.35rem; }
+.more { margin-top: 1.25rem; font-weight: 600; }
+
+/* The six kinds of work, on the home page */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 0 2.5rem;
+  max-width: 64rem;
+  border-top: 1px solid var(--rule);
+}
+.card {
+  display: block;
+  padding: 1.25rem 0 1.4rem;
+  border-bottom: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--text);
+}
+.card h3 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 1.9rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0 0 0.4rem;
+}
+.card p { margin: 0 0 0.5rem; }
+.card .go { color: var(--stencil); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.card:hover h3, .card:hover .go { color: var(--stencil); }
+.card:hover .go { color: var(--ink); }
+
+/* Booking steps */
+.steps { list-style: none; padding: 0; margin: 0 0 1.5rem; max-width: var(--measure); counter-reset: step; }
+.steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--rule);
+}
+.steps li::before {
+  content: counter(step);
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--stencil);
+}
+.steps b { display: block; }
+
+/* Questions */
+.faq { max-width: var(--measure); }
+.faq details { border-top: 1px solid var(--rule); }
+.faq details:last-child { border-bottom: 1px solid var(--rule); }
+.faq summary {
+  cursor: pointer;
+  padding: 0.9rem 0;
+  font-weight: 600;
+  list-style: none;
+  display: flex; justify-content: space-between; gap: 1rem; align-items: baseline;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-family: var(--display); font-size: 1.6rem; line-height: 1; color: var(--stencil); }
+.faq details[open] summary::after { content: "\2013"; }
+.faq details p { margin: 0 0 1rem; }
+
+/* Photos */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+  max-width: 72rem;
+  margin: 0;
+  padding: 0;
+}
+.gallery figure { margin: 0; }
+.gallery img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; background: var(--rule); }
+.gallery figcaption { font-size: 0.95rem; color: var(--muted); margin-top: 0.4rem; }
+.gallery .ph {
+  aspect-ratio: 4 / 5;
+  border: 2px dashed #c9a800;
+  background: #fff8cc;
+  color: #5a4a00;
+  font-size: 0.9rem;
+  padding: 0.75rem;
+  display: flex; align-items: flex-end;
+  word-break: break-word;
+}
+.portrait { max-width: 22rem; margin: 0 0 1.5rem; }
+.portrait img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; background: var(--rule); }
+.portrait .ph { aspect-ratio: 4 / 5; border: 2px dashed #c9a800; background: #fff8cc; color: #5a4a00; font-size: 0.9rem; padding: 0.75rem; display: flex; align-items: flex-end; }
+
+/* Prices */
+.price-table { border-collapse: collapse; width: 100%; max-width: var(--measure); margin: 0 0 1.5rem; }
+.price-table th, .price-table td { text-align: left; padding: 0.75rem 0.5rem 0.75rem 0; border-top: 1px solid var(--rule); vertical-align: top; }
+.price-table tr:last-child td { border-bottom: 1px solid var(--rule); }
+.price-table th { font-weight: 600; }
+.price-table td:last-child { white-space: nowrap; font-weight: 600; }
+
+/* Towns */
+.towns { max-width: var(--measure); margin: 0; }
+.towns div { display: grid; grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr); gap: 0.5rem 1rem; padding: 0.7rem 0; border-top: 1px solid var(--rule); }
+.towns div:last-child { border-bottom: 1px solid var(--rule); }
+.towns dt { font-weight: 600; }
+.towns dd { margin: 0; }
+
+/* Related pages */
+.also { max-width: var(--measure); }
+.also ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.strip { padding: 1.5rem var(--gutter); border-top: 1px solid var(--rule); }
+.strip p { margin: 0 0 0.5rem; font-weight: 600; }
+.strip ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
+.strip a[aria-current="page"] { color: var(--ink); text-decoration: none; font-weight: 600; }
+
+.find {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 2rem;
+  max-width: 72rem;
+}
+.find h3 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+.find address { font-style: normal; }
+.find ul { list-style: none; padding: 0; margin: 0; }
+.find li { margin: 0 0 0.4rem; }
+
+footer {
+  padding: 1.5rem var(--gutter) 3rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+footer ul { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; }
+
+/* Draft-only: yellow marks text that needs Caitlin. Removed by the final build. */
+.fill { background: #fff3a8; outline: 2px dashed #c9a800; outline-offset: 1px; padding: 0 0.15em; }
+.draft-banner { background: #fff3a8; color: #5a4a00; padding: 0.5rem var(--gutter); font-size: 0.95rem; font-weight: 600; border-bottom: 2px dashed #c9a800; }

@@ -1,11 +1,28 @@
-# Caitlin Carney Tattoo, one-page site
+# Caitlin Carney Tattoo
 
-Static site. No build step. The files in this folder are the whole site.
+Static site. The files in this folder are the whole site: plain HTML, one shared stylesheet
+in `assets/site.css`, no JavaScript.
 
-- `index.html` is the **launch version**: only facts we are sure of, no placeholders.
-- The **full draft** with the gallery, the two style sections, prices and the portrait is kept
-  outside this folder in `../site-drafts/index-full.html`. It replaces `index.html` once Caitlin
-  has supplied her styles, prices, days and photos. Search that file for `[` to find every blank.
+## Branches
+
+- `main` is what GitHub Pages serves at caitlincarneytattoo.co.uk. Only facts we are sure of.
+- `v2-subjects` is the **ten-page draft** built around the search map: home, one page per kind
+  of work (portraits, memorial, script, faith, cover-ups, walk-ins), prices, where clients come
+  from, and about. Yellow slots mark what still needs Caitlin's words, a price or a photo.
+  It merges into `main` once the slots are filled and Caitlin has approved it.
+
+## How the pages are made
+
+The page bodies live outside this repo in `../site-src/pages/`, one file per page with a small
+meta block at the top. `python ../site-src/make.py` stamps the shared head, header and footer
+onto each one, writes the finished HTML here, and rewrites `sitemap.xml`. It prints how many
+yellow slots are left. `python ../site-src/make.py --final` refuses to build while any slot remains
+and drops the draft banner.
+
+Photos: drop them into `images/` with the file names written in the page bodies (for example
+`portrait-tattoo-preston-01.jpg`), run the build again, and the placeholders become real images.
+Export at 1600px on the long side, quality 80, under about 400 KB each. Portrait crops (4:5).
+
 - `CNAME` tells GitHub Pages the domain. Leave it alone.
 
 ## Put it online (GitHub Pages, free)
