@@ -5,11 +5,12 @@ in `assets/site.css`, no JavaScript.
 
 ## Branches
 
-- `main` is what GitHub Pages serves at caitlincarneytattoo.co.uk. Only facts we are sure of.
-- `v2-subjects` is the **eight-page draft** built around the search map: home, one page per kind
-  of work (portraits, Christian pieces, script, walk-ins), prices, where clients come
-  from, and about. Yellow slots mark what still needs Caitlin's words, a price or a photo.
-  It merges into `main` once the slots are filled and Caitlin has approved it.
+- `main` is what GitHub Pages serves at caitlincarneytattoo.co.uk: the **eight-page site**, live
+  since 5 November 2026. Home, one page per kind of work (portraits, Christian pieces, script,
+  walk-ins), prices, where clients come from, and about. Only facts we are sure of.
+- `v2-subjects` was the draft branch for those pages and is level with `main` now. Draft the next
+  round there, or on a new branch, so `main` only ever gets finished pages. Yellow slots mark what
+  still needs Caitlin's words, a price or a photo, and `--final` refuses to build while any remain.
 
 ## How the pages are made
 
@@ -57,16 +58,17 @@ These four addresses are GitHub Pages' published ones. Changes usually show with
 Do **not** switch the domain's nameservers to Cloudflare. New Cloudflare domains block AI crawlers
 by default, and the whole point of this site is to be read by them.
 
-## Photos, when they arrive
+## Photos
 
-Put them in an `images/` folder with these names, and switch to the full draft:
+Photos live in `images/`, named by subject with the place in the file name (for example
+`portrait-tattoo-preston-01.jpg`, `christian-tattoo-preston-02.jpg`, `tattoo-preston-medusa.jpg`).
+Each page body lists its photos as one-line comments with a caption, which doubles as the alt text,
+so say what the tattoo is and where it sits. To add one: drop the file in `images/`, add a photo
+line to the page body in `../site-src/pages/`, and rebuild. Keep files under about 400 KB
+(1400px on the long side, quality 85, metadata stripped).
 
-- `work-01.jpg` to `work-12.jpg`: finished work, healed where possible, portrait crops (4:5).
-- `style-one.jpg` and `style-two.jpg`: one strong example of each style, landscape (4:3).
-- `caitlin.jpg`: a portrait at her station.
-
-Then edit each image's `alt` text so it says what the tattoo is. Google reads alt text and file names.
-Keep each file under about 400 KB (export at 1600px on the long side, quality 80).
+Still wanted: `caitlin-carney-tattoo-artist-preston.jpg`, a portrait of Caitlin at her station,
+for the about page.
 
 ## After the site is live
 
