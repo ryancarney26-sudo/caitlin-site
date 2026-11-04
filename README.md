@@ -25,6 +25,7 @@ Photos: drop them into `images/` with the file names written in the page bodies 
 Export at 1600px on the long side, quality 80, under about 400 KB each. Portrait crops (4:5).
 
 - `CNAME` tells GitHub Pages the domain. Leave it alone.
+- `google42e6e428d1cd23fe.html` is Google Search Console's proof that we own the site. Leave it alone too.
 
 ## Put it online (GitHub Pages, free)
 
