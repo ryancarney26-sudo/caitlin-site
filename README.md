@@ -9,6 +9,10 @@ Design, since 7 November 2026: "night studio". Dark pages with a violet plaster 
 type, Grenze Gotisch for headings, Atkinson Hyperlegible for reading, and photos set in pointed
 arches. Page bodies write a photo-in-an-arch as `<!--arch file.jpg | alt | classes | attributes-->`
 and a gallery tile as `<!--photo file.jpg | alt | classes-->`; `make.py` turns both into markup.
+A gallery tile opens full size in a lightbox (arrows, swipe, Escape, and a "Get a quote" button),
+and every page carries a share card, `images/share-*.jpg`, so a link sent on WhatsApp or Instagram
+shows a picture. The cards are rendered at 1200 by 630 from `../site-src/share-card.html`; a page
+picks its own with an `og: share-portraits.jpg` line in its meta block, else it gets `share-home.jpg`.
 
 ## Branches
 

@@ -13,6 +13,12 @@
   <meta property="og:url" content="https://caitlincarneytattoo.co.uk/script-tattoos/">
   <meta property="og:type" content="article">
   <meta property="og:locale" content="en_GB">
+  <meta property="og:image" content="https://caitlincarneytattoo.co.uk/images/share-script.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Script and lettering tattoos in Preston, Lancashire | Caitlin Carney Tattoo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://caitlincarneytattoo.co.uk/images/share-script.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@700;900&family=Grenze:ital,wght@0,500;1,500&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
@@ -201,9 +207,9 @@
   <section class="reveal panel" aria-labelledby="photos-h">
     <h2 id="photos-h">Lettering I've done</h2>
     <div class="gallery">
-      <figure class="reveal tilt"><img src="/images/script-tattoo-preston-01.jpg" alt="Baby footprint tattoo with the name Willow, birth weight and date in script" loading="lazy"><figcaption>Baby footprint tattoo with the name Willow, birth weight and date in script</figcaption></figure>
-      <figure class="reveal tilt"><img src="/images/script-tattoo-preston-02.jpg" alt="Watercolour flowers with the word Resilience in script, on the forearm" loading="lazy"><figcaption>Watercolour flowers with the word Resilience in script, on the forearm</figcaption></figure>
-      <figure class="reveal tilt"><img src="/images/script-tattoo-preston-03.jpg" alt="Red rose hand tattoo with the name Kayne in script" loading="lazy"><figcaption>Red rose hand tattoo with the name Kayne in script</figcaption></figure>
+      <figure class="reveal tilt"><a class="open" href="/images/script-tattoo-preston-01.jpg"><img src="/images/script-tattoo-preston-01.jpg" alt="Baby footprint tattoo with the name Willow, birth weight and date in script" loading="lazy"></a><figcaption>Baby footprint tattoo with the name Willow, birth weight and date in script</figcaption></figure>
+      <figure class="reveal tilt"><a class="open" href="/images/script-tattoo-preston-02.jpg"><img src="/images/script-tattoo-preston-02.jpg" alt="Watercolour flowers with the word Resilience in script, on the forearm" loading="lazy"></a><figcaption>Watercolour flowers with the word Resilience in script, on the forearm</figcaption></figure>
+      <figure class="reveal tilt"><a class="open" href="/images/script-tattoo-preston-03.jpg"><img src="/images/script-tattoo-preston-03.jpg" alt="Red rose hand tattoo with the name Kayne in script" loading="lazy"></a><figcaption>Red rose hand tattoo with the name Kayne in script</figcaption></figure>
     </div>
   </section>
 
@@ -288,6 +294,38 @@
       }
     });
 
+    // A gallery tile opens full size: its caption, arrows, and the way to book
+    var opens = Array.prototype.slice.call(document.querySelectorAll('.gallery a.open'));
+    var dlg = document.createElement('dialog');
+    if (opens.length && typeof dlg.showModal === 'function') {
+      dlg.className = 'lightbox';
+      dlg.innerHTML = '<figure><img alt=""><figcaption></figcaption></figure>' +
+        '<div class="lb-bar"><a class="btn primary" href="/#book">Get a quote</a><span class="lb-count"></span></div>' +
+        '<button class="lb-prev" type="button" aria-label="Previous photo">&#8249;</button>' +
+        '<button class="lb-next" type="button" aria-label="Next photo">&#8250;</button>' +
+        '<button class="lb-close" type="button" aria-label="Close">&#215;</button>';
+      document.body.appendChild(dlg);
+      var lbImg = dlg.querySelector('img'), lbCap = dlg.querySelector('figcaption'), lbCount = dlg.querySelector('.lb-count'), cur = 0;
+      var show = function (i) {
+        cur = (i + opens.length) % opens.length;
+        var src = opens[cur].querySelector('img');
+        lbImg.src = opens[cur].getAttribute('href');
+        lbImg.alt = src ? src.alt : '';
+        lbCap.textContent = src ? src.alt : '';
+        lbCount.textContent = (cur + 1) + ' of ' + opens.length;
+      };
+      opens.forEach(function (a, i) { a.addEventListener('click', function (e) { e.preventDefault(); show(i); dlg.showModal(); }); });
+      dlg.querySelector('.lb-prev').addEventListener('click', function () { show(cur - 1); });
+      dlg.querySelector('.lb-next').addEventListener('click', function () { show(cur + 1); });
+      dlg.querySelector('.lb-close').addEventListener('click', function () { dlg.close(); });
+      dlg.addEventListener('click', function (e) { if (e.target === dlg) { dlg.close(); } });
+      dlg.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') { show(cur - 1); } if (e.key === 'ArrowRight') { show(cur + 1); } });
+      var tx = 0;
+      dlg.addEventListener('touchstart', function (e) { tx = e.changedTouches[0].clientX; }, { passive: true });
+      dlg.addEventListener('touchend', function (e) { var dx = e.changedTouches[0].clientX - tx; if (dx > 50) { show(cur - 1); } else if (dx < -50) { show(cur + 1); } }, { passive: true });
+      dlg.addEventListener('close', function () { lbImg.removeAttribute('src'); opens[cur].focus(); });
+    }
+
     // Header turns glassy once scrolled; layers with a depth move at their own speed
     var bar = document.getElementById('bar');
     var layers = Array.prototype.slice.call(document.querySelectorAll('[data-depth]'));
@@ -312,7 +350,20 @@
     // The lamp follows the pointer; frames tilt under it
     var lamp = document.getElementById('lamp');
     if (fine && !reduce) {
+      // On the home page the lamp sweeps in from the left once, then follows the pointer
+      var sweeping = false;
+      if (document.body.classList.contains('home')) {
+        sweeping = true;
+        lamp.style.transition = 'none';
+        lamp.style.transform = 'translate(' + (-window.innerWidth * 0.9) + 'px,' + (window.innerHeight * 0.15) + 'px)';
+        requestAnimationFrame(function () { requestAnimationFrame(function () {
+          lamp.style.transition = 'transform 2.8s cubic-bezier(0.22, 0.61, 0.36, 1)';
+          lamp.style.transform = 'translate(' + (window.innerWidth * 0.3) + 'px,' + (-window.innerHeight * 0.2) + 'px)';
+          setTimeout(function () { sweeping = false; lamp.style.transition = ''; }, 2900);
+        }); });
+      }
       document.addEventListener('mousemove', function (e) {
+        if (sweeping) { return; }
         lamp.style.transform = 'translate(' + (e.clientX - window.innerWidth * 0.45) + 'px,' + (e.clientY - window.innerHeight * 0.45) + 'px)';
       });
       document.querySelectorAll('.tilt').forEach(function (el) {
