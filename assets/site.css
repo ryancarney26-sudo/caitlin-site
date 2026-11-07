@@ -4,7 +4,9 @@
            (the colour a transfer stencil leaves on skin), rule #d9d6d1.
    Type:   Big Shoulders Display 900 for the name and titles (sign-painter condensed),
            Libre Franklin 400/600 for everything else.
-   Layout: one left-aligned column. Text measures about 62 characters.
+   Layout: one centred column up to 78rem wide. Above 64rem the home hero and the
+           subject-page heads go two-column, copy left and a photo right. Text measures
+           about 62 characters.
    Rule:   the name is the only loud thing. Photos bring the colour. */
 
 :root {
@@ -18,6 +20,9 @@
   --body: 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;
   --measure: 62ch;
   --gutter: clamp(1rem, 4vw, 2.5rem);
+  --wrap: 78rem;
+  /* Side padding that centres a 78rem column on wide screens and falls back to the gutter. */
+  --side: max(var(--gutter), calc((100% - var(--wrap)) / 2));
 }
 
 * { box-sizing: border-box; }
@@ -47,7 +52,7 @@ a:hover { color: var(--ink); }
 .bar {
   display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem;
   align-items: baseline; justify-content: space-between;
-  padding: 1rem var(--gutter);
+  padding: 1rem var(--side);
   border-bottom: 1px solid var(--rule);
 }
 .bar .left { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
@@ -69,7 +74,22 @@ a:hover { color: var(--ink); }
 
 /* Home hero: the name, set huge */
 .hero {
-  padding: clamp(2rem, 6vw, 4.5rem) var(--gutter) clamp(2rem, 5vw, 3.5rem);
+  padding: clamp(2rem, 6vw, 4.5rem) var(--side) clamp(2rem, 5vw, 3.5rem);
+  display: grid;
+  gap: 2.5rem 4rem;
+  align-items: center;
+}
+.hero-art {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  max-width: 30rem;
+}
+.hero-art img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; background: var(--rule); }
+.hero-art img:last-child { margin-top: 2.5rem; }
+@media (min-width: 64rem) {
+  .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+  .hero-art { max-width: 44rem; justify-self: end; }
 }
 .hero h1 {
   font-family: var(--display);
@@ -116,7 +136,14 @@ a:hover { color: var(--ink); }
 
 /* Inner page head */
 .page-head {
-  padding: clamp(2rem, 5vw, 3.5rem) var(--gutter) clamp(1.5rem, 4vw, 2.5rem);
+  padding: clamp(2rem, 5vw, 3.5rem) var(--side) clamp(1.5rem, 4vw, 2.5rem);
+}
+.page-head.has-art { display: grid; gap: 2rem 4rem; align-items: center; }
+.head-art { margin: 0; max-width: 16rem; }
+.head-art img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; background: var(--rule); }
+@media (min-width: 64rem) {
+  .page-head.has-art { grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem); }
+  .head-art { max-width: none; justify-self: end; }
 }
 .page-head h1 {
   font-family: var(--display);
@@ -153,7 +180,7 @@ a:hover { color: var(--ink); }
 .btn.primary:hover { background: var(--stencil); border-color: var(--stencil); color: var(--paper); }
 .btn:hover { border-color: var(--stencil); color: var(--stencil); }
 
-section { padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter); border-top: 1px solid var(--rule); }
+section { padding: clamp(2.5rem, 6vw, 4.5rem) var(--side); border-top: 1px solid var(--rule); }
 section > h2 {
   font-family: var(--display);
   font-weight: 900;
@@ -175,9 +202,8 @@ section > h2 {
 /* The six kinds of work, on the home page */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   gap: 0 2.5rem;
-  max-width: 48rem;
   border-top: 1px solid var(--rule);
 }
 .card {
@@ -241,9 +267,8 @@ section > h2 {
 /* Photos */
 .gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: 1rem;
-  max-width: 72rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
+  gap: 1.25rem;
   margin: 0;
   padding: 0;
 }
@@ -281,7 +306,7 @@ section > h2 {
 /* Related pages */
 .also { max-width: var(--measure); }
 .also ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
-.strip { padding: 1.5rem var(--gutter); border-top: 1px solid var(--rule); }
+.strip { padding: 1.5rem var(--side); border-top: 1px solid var(--rule); }
 .strip p { margin: 0 0 0.5rem; font-weight: 600; }
 .strip ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
 .strip a[aria-current="page"] { color: var(--ink); text-decoration: none; font-weight: 600; }
@@ -290,7 +315,6 @@ section > h2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: 2rem;
-  max-width: 72rem;
 }
 .find h3 { font-size: 1.1rem; margin: 0 0 0.5rem; }
 .find address { font-style: normal; }
@@ -298,7 +322,7 @@ section > h2 {
 .find li { margin: 0 0 0.4rem; }
 
 footer {
-  padding: 1.5rem var(--gutter) 3rem;
+  padding: 1.5rem var(--side) 3rem;
   border-top: 1px solid var(--rule);
   color: var(--muted);
   font-size: 0.95rem;
@@ -307,4 +331,4 @@ footer ul { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; fle
 
 /* Draft-only: yellow marks text that needs Caitlin. Removed by the final build. */
 .fill { background: #fff3a8; outline: 2px dashed #c9a800; outline-offset: 1px; padding: 0 0.15em; }
-.draft-banner { background: #fff3a8; color: #5a4a00; padding: 0.5rem var(--gutter); font-size: 0.95rem; font-weight: 600; border-bottom: 2px dashed #c9a800; }
+.draft-banner { background: #fff3a8; color: #5a4a00; padding: 0.5rem var(--side); font-size: 0.95rem; font-weight: 600; border-bottom: 2px dashed #c9a800; }
