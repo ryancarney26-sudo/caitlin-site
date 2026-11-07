@@ -32,20 +32,25 @@ def around(text, heading_id="recent-h"):
     return text[:i], text[j:]
 
 
+# The live home gallery grows as the robot adds photos, so these count from the page as it is.
+
 def test_gallery_lines_home(repo_copy):
     lines = gallery_lines(home(repo_copy), "recent-h")
-    assert len(lines) == 8
-    assert "tattoo-preston-medusa.jpg" in lines[0]
+    assert len(lines) >= 8
+    assert all(line.strip().startswith("<!--photo") for line in lines)
+    assert any("tattoo-preston-medusa.jpg | Medusa" in line for line in lines)
 
 
 def test_add_photo_goes_first_and_trims(repo_copy):
-    out = add_photo(home(repo_copy), "recent-h", NEW, "Twisty snake, forearm", keep=8)
+    before = gallery_lines(home(repo_copy), "recent-h")
+    out = add_photo(home(repo_copy), "recent-h", NEW, "Twisty snake, forearm", keep=len(before))
     lines = gallery_lines(out, "recent-h")
     assert lines[0].strip() == f"<!--photo {NEW} | Twisty snake, forearm -->"
     assert lines[0].startswith("      <!--photo")
-    assert len(lines) == 8
-    assert "tattoo-preston-classic-car.jpg" not in out
-    assert "| feature" in lines[1]
+    assert len(lines) == len(before)
+    assert before[-1] not in lines                     # the oldest dropped off
+    assert lines[1] == before[0]                       # the old first tile, untouched, now second
+    assert any("| feature" in line for line in lines)  # the feature tile keeps its class
 
 
 def test_add_keeps_everything_outside_gallery(repo_copy):

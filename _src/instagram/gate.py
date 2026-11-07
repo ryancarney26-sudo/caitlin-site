@@ -68,6 +68,12 @@ def _clean(raw):
     return text.strip(" .,;:-")
 
 
+def tidy(text):
+    """Any caption, tidied the way hers are: symbols out, spaces even, first letter a capital."""
+    text = _clean(text or "")
+    return text[0].upper() + text[1:] if text else ""
+
+
 def _words(text):
     return [w for w in text.split() if re.search(r"[^\W_]", w)]
 
