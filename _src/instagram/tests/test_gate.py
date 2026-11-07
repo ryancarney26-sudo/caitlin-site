@@ -95,3 +95,50 @@ def test_pages_for_flash_is_a_walk_in():
 
 def test_pages_for_none():
     assert pages_for("Compass in black and grey, upper arm", RULES) == []
+
+
+# Review findings, 7 Nov 2026: idioms, abbreviations, trailing bangs, everyday routing words.
+
+def test_idioms_with_place_words_fail():
+    for caption in ["Back in the studio Monday, come say hi",
+                    "Back at it today with this little snake",
+                    "Hands down my favourite piece this year",
+                    "Welcome back to the studio everyone",
+                    "Side note, I love doing snakes",
+                    "Plenty of flash on hand this week, come in"]:
+        assert site_caption(caption, RULES) is None, caption
+
+
+def test_ambiguous_place_words_need_a_qualifier():
+    assert site_caption("Twisty snake on the back", RULES) == "Twisty snake on the back"
+    assert site_caption("Twisty snake, lower back", RULES) == "Twisty snake, lower back"
+    assert site_caption("Small cross on her hand", RULES) == "Small cross on her hand"
+    assert site_caption("Crowned crow on the back of the neck", RULES) == "Crowned crow on the back of the neck"
+    assert site_caption("Little bee, hand piece", RULES) == "Little bee, hand piece"
+
+
+def test_abbreviations_survive_the_sentence_split():
+    assert site_caption("St. Michael the Archangel, forearm", RULES) == "St. Michael the Archangel, forearm"
+    assert site_caption("Mr. Punch on the calf", RULES) == "Mr. Punch on the calf"
+    assert site_caption("Big day. St. Michael the Archangel, forearm. More soon", RULES) == (
+        "St. Michael the Archangel, forearm")
+
+
+def test_whole_line_is_tried_last():
+    assert site_caption("Portrait of a dad and his baby. Inner forearm", RULES) == (
+        "Portrait of a dad and his baby. Inner forearm")
+
+
+def test_trailing_exclamation_is_forgiven():
+    assert site_caption("Loved doing this twisty snake on the forearm!", RULES) == (
+        "Loved doing this twisty snake on the forearm")
+    assert site_caption("Loved doing this twisty snake on the forearm!!", RULES) == (
+        "Loved doing this twisty snake on the forearm")
+    assert site_caption("Snake on the forearm! Come and get one", RULES) is None
+
+
+def test_routing_ignores_everyday_words():
+    assert pages_for("God I loved this one, inner forearm", RULES) == []
+    assert pages_for("Cat skull, forearm", RULES) == []
+    assert pages_for("Date night, forearm", RULES) == []
+    assert pages_for("Lamb of God, forearm", RULES) == ["13-christian-tattoos.html"]

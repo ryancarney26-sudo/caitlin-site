@@ -54,7 +54,8 @@ Post the tattoo on Instagram as normal.
 Somewhere in the caption, write **one line that says what it is and where it sits.**
 For example: **Twisty snake from my flash, on the forearm.**
 
-Keep that line short and plain. No hashtags, no @names, no prices on that line.
+Keep that line short and plain. No hashtags, no @names, no prices, no question marks on that line.
+An exclamation mark at the end is fine. "Forearm" is clearer than "arm"; "on the back" is clearer than "back".
 The rest of the caption can be as chatty as you like. It is not used.
 The photo is on the site within the hour, with that line as its caption.
 
@@ -104,15 +105,20 @@ Set each one yourself with `gh secret set NAME` and type the value when asked.
 2. At developers.facebook.com, sign in with Facebook and create an app. Add the **Instagram**
    product and choose the set-up with Instagram login.
 3. In the app's Instagram settings, under business login, add the redirect URI
-   `https://caitlincarneytattoo.co.uk/instagram-connect/`. Note the **Instagram app ID** and
-   **app secret** shown there.
+   `https://caitlincarneytattoo.co.uk/instagram-connect/`. If the form also asks for a
+   deauthorize address or a data deletion address, use that same address. Note the
+   **Instagram app ID** and **Instagram app secret** shown on that page. They are not the
+   Meta app ID at the top of the dashboard.
 4. Under app roles, add Caitlin's Instagram account as a tester. She accepts in the Instagram
    app: Settings, Website permissions (also called Apps and websites), Tester invites.
-5. In this folder run `python -I _src\instagram\connect.py --link`, type the app ID, and send
-   Caitlin the link. She opens it on her phone, signed in to Instagram, and taps allow. The
-   site's connect page shows her a code. She sends it to you. It lasts an hour.
-6. Run `python -I _src\instagram\connect.py` and paste the app ID, the app secret (typed hidden)
-   and the code. It stores the key encrypted, sets the secret, and writes `state.json`.
+5. On this PC, `gh` must be installed and signed in (`gh auth status` says so; `gh auth login`
+   if not). Then, in this folder, run `python -I _src\instagram\connect.py --link`, type the
+   Instagram app ID, and send Caitlin the link. She opens it on her phone, signed in to
+   Instagram, and taps allow. The site's connect page shows her a code. She sends it to you.
+   It lasts an hour and works once.
+6. Run `python -I _src\instagram\connect.py` and paste the Instagram app ID, the Instagram app
+   secret (typed hidden) and the code. It stores the key encrypted, sets the secret, and
+   writes `state.json`.
 7. Commit and push: `git add _src/instagram/token.enc _src/instagram/state.json`, then commit, then push.
 8. On GitHub: Actions, Instagram photos, Run workflow, tick **dry run**, and read the log.
    It should list her recent posts and say "skip" for each one without a line.
@@ -127,9 +133,13 @@ without changing anything.
 
 - **GitHub pauses the hourly job** after 60 days without activity in the repository. The workflow
   page shows a banner. Click **Enable workflow**. The robot catches up on its next run.
+- **The run says "Not connected yet."** Nothing is wrong. The robot waits quietly until
+  Connecting it is done.
 - **The run says "The Instagram connection needs setting up again."** The key has lapsed: the robot
   was off for more than 60 days, or Caitlin changed her password or removed the app. Do steps
   5 to 7 of Connecting it again. The switch-on date and the photos already up are kept.
+  The log says this every hour, but the run only fails (and GitHub only emails you) once a day,
+  on the 08:17 run, so a lapse does not flood your inbox. Times are UTC.
 - **The build failed.** GitHub emails you. The log names the missing image or the open slot.
 - **A wrong photo or caption went up.** Caitlin edits or deletes the post. The site follows within
   the hour, or within a day for a deleted post.

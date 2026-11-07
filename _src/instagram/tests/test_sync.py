@@ -110,8 +110,8 @@ def test_first_run_adds_two_photos(repo_copy, fixture_images):
     assert rep.rebuild and rep.changed
     assert rep.commit_message.startswith("Instagram: add ")
     assert [s for s, _ in mailer.sent] == [
-        "On the site: Had a lot of fun doing this twisty snake from my flash, on the forearm",
-        "On the site: Psalm 23 in script, forearm"]
+        "Going on the site: Had a lot of fun doing this twisty snake from my flash, on the forearm",
+        "Going on the site: Psalm 23 in script, forearm"]
     assert state["posts"]["a"]["status"] == "live" and state["posts"]["a"]["file"] == SNAKE_FILE
     assert state["posts"]["c"]["pages"] == ["12-script-tattoos.html", "13-christian-tattoos.html"]
     assert dict(rep.skipped) == {"b": "no line", "d": "video"}
@@ -261,6 +261,87 @@ def test_state_round_trip(tmp_path):
     save_state(path, s)
     assert load_state(path) == s
     assert path.read_text(encoding="utf-8").endswith("}\n")
+
+
+# Review findings, 7 Nov 2026: mail and network errors must not stop the site following Instagram,
+# and an unconnected or lapsed connection must not fail every hour.
+
+class RaisingMailer:
+    def __call__(self, subject, body):
+        raise RuntimeError("SMTP said no")
+
+
+def test_mail_failure_does_not_stop_the_run(repo_copy, fixture_images):
+    rep, state, _, _ = go(repo_copy, fixture_images, mailer=RaisingMailer())
+    assert len(rep.added) == 2 and rep.changed and rep.rebuild
+    assert (repo_copy / "images" / SNAKE_FILE).exists()
+    assert state["posts"]["a"]["status"] == "live"
+    assert any(n.startswith("mail failed") for n in rep.notes)
+
+
+def test_digest_mail_failure_does_not_stop_the_run(repo_copy, fixture_images):
+    _, state, _, _ = go(repo_copy, fixture_images)
+    rep, state, _, _ = go(repo_copy, fixture_images, state=state, now=SUNDAY_EVENING, mailer=RaisingMailer())
+    assert any(n.startswith("mail failed") for n in rep.notes)
+    assert state["last_digest"] is None
+
+
+class FlakyApi(FakeApi):
+    def media_exists(self, media_id):
+        raise OSError("timed out")
+
+
+def test_network_error_in_existence_check_leaves_posts_alone(repo_copy, fixture_images):
+    _, state, _, _ = go(repo_copy, fixture_images)
+    api = FlakyApi([m for m in MEDIA if m["id"] != "c"], fixture_images)
+    rep = run(repo_copy, NOW, api, RULES, state, False, Mailer(), existence_check=True)
+    assert rep.removed == [] and state["posts"]["c"]["status"] == "live"
+    assert any("could not check" in n for n in rep.notes)
+
+
+class AuthFailingApi(FakeApi):
+    def media_exists(self, media_id):
+        from api import ApiError
+        raise ApiError("bad token", code=190)
+
+
+def test_auth_error_in_existence_check_still_raises(repo_copy, fixture_images):
+    from api import ApiError
+    _, state, _, _ = go(repo_copy, fixture_images)
+    api = AuthFailingApi([m for m in MEDIA if m["id"] != "c"], fixture_images)
+    with pytest.raises(ApiError):
+        run(repo_copy, NOW, api, RULES, state, False, Mailer(), existence_check=True)
+
+
+def main_in(tmp_path, monkeypatch, *, since=None, now="2026-11-07T15:00:00+00:00"):
+    import sync
+    sent = []
+    monkeypatch.setattr(sync, "TOKEN_FILE", tmp_path / "token.enc")
+    monkeypatch.setattr(sync, "STATE_FILE", tmp_path / "state.json")
+    monkeypatch.setattr(sync.mail, "send", lambda subject, body, env=None: sent.append(subject) or True)
+    monkeypatch.delenv("IG_TOKEN_KEY", raising=False)
+    monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
+    if since:
+        save_state(tmp_path / "state.json", {**load_state(None), "since": since})
+    return sync.main(["--repo", str(tmp_path), "--now", now]), sent
+
+
+def test_not_connected_yet_is_quiet(tmp_path, monkeypatch, capsys):
+    code, sent = main_in(tmp_path, monkeypatch)
+    assert code == 0 and sent == []
+    assert "Not connected yet" in capsys.readouterr().out
+
+
+def test_lapsed_connection_is_loud_once_a_day(tmp_path, monkeypatch, capsys):
+    code, sent = main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T08:30:00+00:00")
+    assert code == 2 and sent == ["The site has stopped following Instagram"]
+    assert "setting up again" in capsys.readouterr().out
+
+
+def test_lapsed_connection_is_quiet_at_other_hours(tmp_path, monkeypatch, capsys):
+    code, sent = main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T15:00:00+00:00")
+    assert code == 0 and sent == []
+    assert "setting up again" in capsys.readouterr().out
 
 
 def test_cli_dry_run_against_fixture(repo_copy, fixture_images):

@@ -56,7 +56,9 @@ def test_send_logs_in_and_sends(monkeypatch):
 
 def test_went_live_copy():
     subject, body = went_live("Twisty snake, forearm", "https://www.instagram.com/p/abc/")
-    assert subject == "On the site: Twisty snake, forearm"
+    assert subject == "Going on the site: Twisty snake, forearm"
+    assert "within the hour" in body
+    assert "I've put this on the site" not in body       # the build and push come after this email
     assert "https://www.instagram.com/p/abc/" in body
     assert "https://caitlincarneytattoo.co.uk/#recent" in body
     assert "Edit the caption" in body

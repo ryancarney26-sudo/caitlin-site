@@ -86,17 +86,29 @@ def gh_set_secret(name, value):
     subprocess.run(["gh", "secret", "set", name, "--repo", REPO], input=value, text=True, check=True)
 
 
+def check_gh():
+    """The code Caitlin sends works once. So gh must be known good before it is spent."""
+    try:
+        subprocess.run(["gh", "auth", "status"], check=True, capture_output=True)
+    except (OSError, subprocess.CalledProcessError):
+        raise SystemExit("gh is not installed or not signed in. Run: gh auth login")
+
+
+APP_ID_PROMPT = "Instagram app ID (from the Instagram product's API setup page, not the Meta app ID): "
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--link", action="store_true", help="print the link for Caitlin and stop")
     args = ap.parse_args(argv)
-    app_id = input("Meta App ID: ").strip()
+    app_id = input(APP_ID_PROMPT).strip()
     if args.link:
         print()
         print("Send this link to Caitlin. She opens it on her phone, signed in to Instagram, and taps allow:")
         print(authorize_url(app_id))
         return 0
-    app_secret = getpass.getpass("Meta App Secret (typed hidden): ").strip()
+    check_gh()
+    app_secret = getpass.getpass("Instagram app secret (typed hidden): ").strip()
     code = clean_code(input("The code, or the whole address Caitlin sent: "))
     token, expires_in = exchange(app_id, app_secret, code)
     now = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)

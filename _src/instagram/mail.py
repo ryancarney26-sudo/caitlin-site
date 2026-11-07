@@ -29,13 +29,13 @@ def send(subject, body, env=None):
 
 
 def went_live(caption, permalink):
-    subject = f"On the site: {caption}"
+    subject = f"Going on the site: {caption}"
     body = (
-        "I've put this on the site:\n"
+        "This is going on the site within the hour:\n"
         "\n"
         f"{caption}\n"
         "\n"
-        f"See it: {SITE_RECENT}\n"
+        f"It will be here: {SITE_RECENT}\n"
         f"The Instagram post: {permalink}\n"
         "\n"
         "Wrong caption? Edit the caption on Instagram. The site follows within the hour.\n"

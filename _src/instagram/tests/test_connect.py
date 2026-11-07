@@ -3,6 +3,8 @@ import datetime
 import json
 from urllib.parse import quote
 
+import pytest
+
 from connect import REDIRECT_URI, authorize_url, clean_code, exchange, store
 from state import load_state
 from tokenstore import decrypt_token
@@ -58,6 +60,37 @@ def test_exchange_accepts_flat_shape():
         return json.dumps({"access_token": "LONG", "expires_in": 100}).encode()
 
     assert exchange("123", "sec", "XYZ", http=http) == ("LONG", 100)
+
+
+def test_check_gh_refuses_when_gh_is_missing_or_signed_out(monkeypatch):
+    import subprocess
+    import connect
+
+    def failing_run(*a, **kw):
+        raise subprocess.CalledProcessError(1, a[0])
+    monkeypatch.setattr(connect.subprocess, "run", failing_run)
+    with pytest.raises(SystemExit, match="gh auth login"):
+        connect.check_gh()
+
+
+def test_gh_is_checked_before_the_code_is_asked_for(monkeypatch):
+    """A used code cannot be used again, so gh must be known good before the exchange."""
+    import connect
+    answers = iter(["123"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(answers))
+    monkeypatch.setattr(connect, "check_gh", lambda: (_ for _ in ()).throw(SystemExit("gh auth login")))
+    monkeypatch.setattr(connect, "exchange", lambda *a, **k: pytest.fail("exchange must not run"))
+    with pytest.raises(SystemExit):
+        connect.main([])
+
+
+def test_prompts_name_the_instagram_app_id(monkeypatch, capsys):
+    import connect
+    prompts = []
+    monkeypatch.setattr("builtins.input", lambda prompt="": prompts.append(prompt) or "123")
+    connect.main(["--link"])
+    assert "Instagram app ID" in prompts[0] and "Meta app ID" in prompts[0]
+    assert authorize_url("123") in capsys.readouterr().out
 
 
 def test_store(tmp_path):
