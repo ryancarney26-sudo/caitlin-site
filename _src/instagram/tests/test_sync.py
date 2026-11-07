@@ -240,6 +240,18 @@ def test_commit_message_joins_and_truncates():
     assert commit_message(rep2) == "Instagram: remove old.jpg"
 
 
+def test_commit_message_for_a_digest_only_run():
+    rep = Report()
+    rep.notes = ["digest sent: 2 posts without a line"]
+    assert commit_message(rep) == "Instagram: weekly digest sent"
+
+
+def test_digest_run_has_a_commit_message(repo_copy, fixture_images):
+    _, state, _, _ = go(repo_copy, fixture_images)
+    rep, _, _, _ = go(repo_copy, fixture_images, state=state, now=SUNDAY_EVENING)
+    assert rep.changed and rep.commit_message == "Instagram: weekly digest sent"
+
+
 def test_state_round_trip(tmp_path):
     path = tmp_path / "state.json"
     s = load_state(path)

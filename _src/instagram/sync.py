@@ -60,6 +60,8 @@ def commit_message(rep):
              + [f"remove {f}" for f in rep.removed])
     if "token refreshed" in rep.notes:
         parts.append("token refreshed")
+    if any(note.startswith("digest sent") for note in rep.notes):
+        parts.append("weekly digest sent")
     if not parts:
         return ""
     return ("Instagram: " + "; ".join(parts))[:72].rstrip()
