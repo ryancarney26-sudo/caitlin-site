@@ -103,7 +103,10 @@ Set each one yourself with `gh secret set NAME` and type the value when asked.
 1. Caitlin's Instagram must be a **professional account** (Creator or Business). In the
    Instagram app: Settings, Account type and tools, Switch to professional account. Free.
 2. At developers.facebook.com, sign in with Facebook and create an app. Add the **Instagram**
-   product and choose the set-up with Instagram login.
+   product and choose the set-up with Instagram login. On the app's permissions page, add
+   **two** permissions: `instagram_business_basic` and `instagram_business_manage_insights`.
+   The second lets the robot read reach and saves, for the weekly numbers email. If one is
+   missing, Instagram shows an error when Caitlin opens the link.
 3. In the app's Instagram settings, under business login, add the redirect URI
    `https://caitlincarneytattoo.co.uk/instagram-connect/`. If the form also asks for a
    deauthorize address or a data deletion address, use that same address. Note the

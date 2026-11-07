@@ -29,7 +29,9 @@ from state import load_state, save_state       # noqa: E402
 from tokenstore import encrypt_token, new_key  # noqa: E402
 
 REDIRECT_URI = "https://caitlincarneytattoo.co.uk/instagram-connect/"
-SCOPE = "instagram_business_basic"
+SCOPES = ("instagram_business_basic",             # her posts and photos, for the gallery
+          "instagram_business_manage_insights")   # reach, saves and followers, for the Sunday numbers
+SCOPE = ",".join(SCOPES)                           # both must be added on the Meta app first
 REPO = "ryancarney26-sudo/caitlin-site"
 AUTHORIZE = "https://www.instagram.com/oauth/authorize"
 SHORT_TOKEN = "https://api.instagram.com/oauth/access_token"
