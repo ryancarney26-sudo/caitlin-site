@@ -1,0 +1,26 @@
+{
+  "home_count": 12,
+  "min_words": 3,
+  "max_words": 20,
+  "places": [
+    "arm", "forearm", "upper arm", "inner arm", "outer arm", "inner forearm", "outer forearm",
+    "bicep", "biceps", "tricep", "elbow", "wrist", "hand", "hands", "finger", "fingers",
+    "knuckle", "knuckles", "palm", "shoulder", "shoulders", "shoulder blade", "collarbone",
+    "chest", "sternum", "rib", "ribs", "side", "stomach", "belly", "hip", "back", "lower back",
+    "upper back", "spine", "neck", "nape", "throat", "ear", "behind the ear", "head", "scalp",
+    "thigh", "thighs", "knee", "calf", "shin", "leg", "legs", "ankle", "foot", "feet", "toe",
+    "sleeve", "half sleeve", "full sleeve"
+  ],
+  "banned": [
+    "dm", "dms", "message", "messages", "book", "booking", "bookings", "booked", "link", "bio",
+    "sale", "discount", "discounted", "offer", "offers", "price", "prices", "thank", "thanks",
+    "available", "availability", "enquire", "enquiries", "giveaway", "competition", "deposit",
+    "cancellation", "cancellations", "slot", "slots"
+  ],
+  "pages": {
+    "10-portrait-tattoos.html": ["portrait", "portraits", "realism", "pet", "dog", "cat", "character"],
+    "12-script-tattoos.html": ["script", "lettering", "handwriting", "quote", "words", "name", "names", "date", "dates", "writing", "font"],
+    "13-christian-tattoos.html": ["cross", "crucifix", "christian", "jesus", "christ", "god", "mary", "madonna", "angel", "archangel", "saint", "rosary", "praying hands", "prayer", "psalm", "scripture", "bible", "verse", "sacred heart", "church", "faith"],
+    "15-walk-in-tattoos.html": ["small", "flash", "walk-in", "walk in", "tiny", "little", "mini"]
+  }
+}
