@@ -43,12 +43,12 @@ def went_live(caption, permalink, by_claude=False):
         lines += [
             "Claude wrote this caption from the photo.",
             "Wrong? On Instagram, add one line to the caption that says what the tattoo is",
-            "and where it sits. Your line replaces this one within the hour.",
+            "and where it sits. Your line replaces this one by the next evening.",
             "Don't want it on the site at all? Delete the post, or ask Ryan.",
         ]
     else:
         lines += [
-            "Wrong caption? Edit the caption on Instagram. The site follows within the hour.",
+            "Wrong caption? Edit the caption on Instagram. The site follows by the next evening.",
             "Don't want it on the site? Delete the post, or ask Ryan.",
         ]
     return subject, "\n".join(lines) + "\n"
@@ -59,7 +59,7 @@ def digest(items):
         "These posts from the last week are not on the site. Claude did not see a finished",
         "tattoo in them, or could not describe them.",
         "If one should be on the site, add one line to its caption on Instagram that says",
-        "what the tattoo is and where it sits, and it goes up within the hour.",
+        "what the tattoo is and where it sits, and it goes up by the next evening.",
         "",
     ]
     for caption_start, permalink in items:
