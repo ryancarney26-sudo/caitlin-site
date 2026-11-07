@@ -1,11 +1,13 @@
-# The robot: every hour, Caitlin's new Instagram photo posts go onto the site. Her own caption
+# The robot: every evening, Caitlin's new Instagram photo posts go onto the site. Her own caption
 # line wins; otherwise Claude writes the caption, and keeps off anything that isn't a finished
 # tattoo. See README.md, "New photos from Instagram".
 name: Instagram photos
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "23 19 * * *"   # every evening at 19:23 UTC (7:23pm in winter, 8:23pm in summer)
+    - cron: "23 21 * * *"   # backup tries: GitHub sometimes skips scheduled runs. A backup that
+    - cron: "23 23 * * *"   # finds nothing new changes nothing and sends nothing.
   workflow_dispatch:
     inputs:
       dry_run:
@@ -66,7 +68,8 @@ jobs:
         run: python -I _src/make.py --final
 
       - name: Commit and push
-        if: steps.sync.outputs.changed == 'true'
+        # Also after a failed run that recorded a connection warning, so the backups stay quiet.
+        if: ${{ !cancelled() && steps.sync.outputs.changed == 'true' }}
         env:
           MESSAGE: ${{ steps.sync.outputs.message }}
         run: |

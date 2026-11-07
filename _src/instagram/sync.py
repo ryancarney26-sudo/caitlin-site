@@ -1,11 +1,11 @@
-"""One hourly run: Caitlin's new Instagram photo posts that carry a usable line go onto the site,
-edited captions follow, and deleted posts (or lines taken out) come off again.
+"""One daily run (every evening, with backup tries the same evening): Caitlin's new Instagram photo
+posts go onto the site, edited captions follow, and deleted posts come off again.
 
     python -I _src/instagram/sync.py [--dry-run]
     python -I _src/instagram/sync.py --fixture posts.json --images DIR --repo DIR --since ISO [--now ISO]
 
 Exit 0 when the run went through (whether or not anything changed), 2 when the Instagram
-connection needs setting up again, 1 on any other failure (the next hour retries).
+connection needs setting up again, 1 on any other failure (the next run retries).
 When GITHUB_OUTPUT is set, writes rebuild=, changed= and message= for the workflow.
 """
 import argparse
@@ -33,9 +33,8 @@ ARCHIVE = "17-tattoos.html"       # "All my tattoos": every photo, newest first,
 RECENT_HEADING = "recent-h"
 SUBJECT_HEADING = "photos-h"
 REFRESH_AFTER = datetime.timedelta(days=7)
-EXISTENCE_CHECK_HOUR = 4          # once a day, on the 04:17 run
-RECONNECT_HOUR = 8                # a lapsed connection is reported loudly once a day, on the 08:17 run
-DIGEST_DAY, DIGEST_HOURS = 6, (18, 19)   # Sunday evening
+ALERT_GAP = datetime.timedelta(hours=20)  # a lapsed connection is reported once a day, not per backup try
+DIGEST_DAY = 6                            # Sunday
 DIGEST_GAP = datetime.timedelta(days=6)
 DIGEST_WINDOW = datetime.timedelta(days=7)
 RECONNECT = "The Instagram connection needs setting up again. Run connect.py."
@@ -126,7 +125,7 @@ class Pages:
             (self.dir / name).write_text(text, encoding="utf-8", newline="")
 
 
-def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
+def run(repo, now, api, rules, state, dry_run, mailer, existence_check=True,
         token=None, token_key=None, token_file=None, describer=None):
     """describer: Claude looking at a photo (describe.make_describer), or None for her lines only."""
     rep = Report()
@@ -186,7 +185,7 @@ def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
 
     def ask_claude(m, jpg, on_final):
         """Claude's Description, or None with the reason recorded. on_final(reason) runs when the
-        same photo would fail again, so the robot remembers instead of paying to ask every hour."""
+        same photo would fail again, so the robot remembers instead of paying to ask every run."""
         if claude["stopped"] or claude["asked"] >= claude["cap"]:
             rep.skipped.append((m["id"], "waiting for Claude"))
             return None
@@ -306,8 +305,6 @@ def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
             notify(mail.went_live(caption, rec["permalink"], by_claude=rec["source"] == "claude"))
 
     # Once a day, is every photo we put up still on Instagram?
-    if existence_check is None:
-        existence_check = now.hour == EXISTENCE_CHECK_HOUR
     if existence_check:
         for post_id, rec in list(posts.items()):
             if rec["status"] == "live" and post_id not in fetched_ids:
@@ -320,7 +317,7 @@ def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
                     rep.notes.append(f"could not check {post_id}: {e}")
 
     # Sunday evening: the photo posts of the week that had no line, so she can add one.
-    if (not dry_run and now.weekday() == DIGEST_DAY and now.hour in DIGEST_HOURS and candidates):
+    if (not dry_run and now.weekday() == DIGEST_DAY and candidates):
         last = state.get("last_digest")
         if not last or now - datetime.datetime.fromisoformat(last) > DIGEST_GAP:
             if notify(mail.digest(candidates)):
@@ -387,20 +384,28 @@ def describer_from_env(env):
     return make_describer(key) if key else None
 
 
-def fail(reason, now):
-    """The connection is gone. Say so every hour in the log, but wake Ryan (a failed run, and
-    the email) only once a day, so a lapse does not become twenty-four emails a day."""
+def fail(reason, now, state=None, state_path=None):
+    """The connection is gone. Say so in every run's log, but wake Ryan (a failed run, and the
+    email) once a day: the evening run speaks up, its backup tries the same evening stay quiet.
+    The time of the warning is committed (last_alert in state.json) so the backups can see it."""
     print(reason)
-    loud = now.hour == RECONNECT_HOUR
-    if loud:
-        try:
-            mail.send(*mail.needs_reconnect(reason))
-        except Exception as e:
-            print(f"mail failed: {e}")
-    else:
-        print(f"(GitHub and the email are told once a day, on the {RECONNECT_HOUR:02d}:17 run.)")
-    write_outputs(Report())
-    return 2 if loud else 0
+    last = (state or {}).get("last_alert")
+    if last and now - datetime.datetime.fromisoformat(last) < ALERT_GAP:
+        print("(Already reported today; GitHub and the email are told once a day.)")
+        write_outputs(Report())
+        return 0
+    try:
+        mail.send(*mail.needs_reconnect(reason))
+    except Exception as e:
+        print(f"mail failed: {e}")
+    rep = Report()
+    if state is not None and state_path is not None:
+        state["last_alert"] = iso(now)
+        save_state(state_path, state)
+        rep.changed = True
+        rep.commit_message = "Instagram: connection warning sent"
+    write_outputs(rep)
+    return 2
 
 
 def main(argv=None):
@@ -433,11 +438,11 @@ def main(argv=None):
             write_outputs(Report())
             return 0
         if not key or not TOKEN_FILE.exists() or not state.get("since"):
-            return fail(RECONNECT, now)
+            return fail(RECONNECT, now, state, state_path)
         try:
             token = decrypt_token(TOKEN_FILE.read_bytes(), key)
         except TokenError:
-            return fail(RECONNECT, now)
+            return fail(RECONNECT, now, state, state_path)
         api = Api(token)
         token_file = TOKEN_FILE
 
@@ -449,10 +454,10 @@ def main(argv=None):
                   token=token, token_key=key, token_file=token_file, describer=describer)
     except ApiError as e:
         if e.is_auth:
-            return fail(f"Instagram rejected the key ({e}). " + RECONNECT, now)
+            return fail(f"Instagram rejected the key ({e}). " + RECONNECT, now, state, state_path)
         raise
     except SyncError as e:
-        return fail(f"{e}. " + RECONNECT, now)
+        return fail(f"{e}. " + RECONNECT, now, state, state_path)
 
     if rep.changed and state_path:
         save_state(state_path, state)

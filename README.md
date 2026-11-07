@@ -6,7 +6,7 @@ that does the motion: sections rising into view, the glow that follows the point
 dust, the tilting frames. All of it switches off when a visitor's device asks for reduced motion.
 
 New tattoos arrive by themselves: Caitlin posts to Instagram, and a robot on GitHub puts the
-photo on the site within the hour. See **New photos from Instagram** below.
+photo on the site that evening. See **New photos from Instagram** below.
 
 Design, since 7 November 2026: "night studio". Dark pages with a violet plaster texture, bone-white
 type, Grenze Gotisch for headings, Atkinson Hyperlegible for reading, and photos set in pointed
@@ -51,7 +51,7 @@ Portrait crops (4:5) suit the gallery best, but any shape works.
 ### Putting a tattoo on the site (for Caitlin)
 
 **Post the tattoo on Instagram as normal. That's all.**
-Within the hour it is on the site. Claude looks at the photo and writes a short, plain caption:
+That evening it is on the site. Claude looks at the photo and writes a short, plain caption:
 what the tattoo shows, its style, and where it sits.
 Posts that aren't a finished tattoo stay off: offers, events, flash sheets, selfies.
 Videos never go up. Posts from before 6 November 2026 are left alone.
@@ -59,15 +59,16 @@ Once the emails are set up, you get one each time a photo goes up, with its capt
 
 **If Claude gets a caption wrong,** add one line to the Instagram caption that says what it is and
 where it sits. For example: **Twisty snake from my flash, on the forearm.**
-Your line replaces Claude's within the hour. Keep it plain: no hashtags, @names, prices or question marks.
+Your line replaces Claude's by the next evening. Keep it plain: no hashtags, @names, prices or question marks.
 **If a tattoo was kept off by mistake,** add a line the same way, and it goes up.
 **To take a photo off the site,** delete the post, or ask Ryan.
 On Sunday evening an email lists the week's posts that were kept off.
 
 ### How it works (for Ryan)
 
-Every hour, at 17 minutes past, GitHub runs the workflow **Instagram photos**
-(`.github/workflows/instagram.yml`). It asks Instagram for Caitlin's latest 25 posts. For each
+Every evening at 19:23 UTC (7:23pm in winter, 8:23pm in summer), GitHub runs the workflow
+**Instagram photos** (`.github/workflows/instagram.yml`). GitHub sometimes skips a scheduled run,
+so it tries again at 21:23 and 23:23; a try that finds nothing new changes nothing. It asks Instagram for Caitlin's latest 25 posts. For each
 new photo post it downloads the photo, turns it upright, shrinks it to at most 1400px, compresses
 it under 400 KB, and strips every scrap of metadata. Then it picks the caption:
 
@@ -81,14 +82,13 @@ It adds the photo to the top of "Recent work" on the home page (the oldest drops
 and to its subject pages, rebuilds with `--final`, commits to `main`, and GitHub Pages publishes.
 If the build fails, nothing is committed and GitHub emails you.
 
-Her line, added or edited, replaces the caption within the hour. Taking her line out hands the
-caption back to Claude; the photo stays. A deleted post comes off on the next daily check, on the
-04:17 run. Without the Claude key, only posts with her line go up, as before 7 November 2026.
+Her line, added or edited, replaces the caption by the next evening. Taking her line out hands the
+caption back to Claude; the photo stays. A deleted post comes off at the next evening run. Without the Claude key, only posts with her line go up, as before 7 November 2026.
 Photos from Instagram come at 1080px on the long side, a little smaller than hand-exported ones.
 
 The robot's files are in `_src/instagram/`:
 
-- `sync.py` is the hourly run. `connect.py` is the one-off connection.
+- `sync.py` is the evening run. `connect.py` is the one-off connection.
 - `gate.py` finds her line. `describe.py` asks Claude about a photo. `gallery.py` edits the
   photo lines. `images.py` shrinks photos.
 - `api.py` talks to Instagram. `mail.py` sends the emails. `tokenstore.py` keeps the key safe.
@@ -165,20 +165,20 @@ it says. It changes nothing and costs about 6p. Use it once after setting `ANTHR
 
 ### If it stops
 
-- **GitHub pauses the hourly job** after 60 days without activity in the repository. The workflow
+- **GitHub pauses the evening job** after 60 days without activity in the repository. The workflow
   page shows a banner. Click **Enable workflow**. The robot catches up on its next run.
 - **The run says "Not connected yet."** Nothing is wrong. The robot waits quietly until
   Connecting it is done.
 - **The run says "The Instagram connection needs setting up again."** The key has lapsed: the robot
   was off for more than 60 days, or Caitlin changed her password or removed the app. Do steps
   5 to 7 of Connecting it again. The switch-on date and the photos already up are kept.
-  The log says this every hour, but the run only fails (and GitHub only emails you) once a day,
-  on the 08:17 run, so a lapse does not flood your inbox. Times are UTC.
+  The run fails (and GitHub emails you) once a day, at the evening run; the backup tries that
+  evening stay quiet, so a lapse does not flood your inbox.
 - **The log says "Claude: ... HTTP 401" or "HTTP 403".** The Anthropic key is wrong, or out of
-  credit. New posts wait, and go up within the hour once the key works again.
+  credit. New posts wait, and go up at the next evening run once the key works again.
 - **The build failed.** GitHub emails you. The log names the missing image or the open slot.
-- **A wrong photo or caption went up.** Caitlin edits or deletes the post. The site follows within
-  the hour, or within a day for a deleted post.
+- **A wrong photo or caption went up.** Caitlin edits or deletes the post. The site follows at the
+  next evening run.
 
 ## Put it online (GitHub Pages, free)
 

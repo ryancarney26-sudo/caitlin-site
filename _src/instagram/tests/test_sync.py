@@ -177,11 +177,19 @@ def test_deleted_post_removed_on_existence_check(repo_copy, fixture_images):
     assert state["posts"]["c"]["status"] == "removed"
 
 
-def test_existence_check_is_skipped_outside_its_hour(repo_copy, fixture_images):
+def test_existence_check_runs_on_every_daily_run(repo_copy, fixture_images):
+    """8 Nov 2026: the robot runs once a day, so every run checks for deleted posts."""
     _, state, _, _ = go(repo_copy, fixture_images)
     media = [m for m in MEDIA if m["id"] != "c"]
     rep, _, _, _ = go(repo_copy, fixture_images, media=media, state=state, exists={"a"})
-    assert rep.removed == []
+    assert rep.removed == [PSALM_FILE]
+
+
+def test_digest_on_a_sunday_at_any_hour(repo_copy, fixture_images):
+    _, state, _, _ = go(repo_copy, fixture_images)
+    sunday_morning = datetime.datetime(2026, 11, 8, 7, 23, tzinfo=datetime.timezone.utc)
+    _, _, mailer, _ = go(repo_copy, fixture_images, state=state, now=sunday_morning)
+    assert [s for s, _ in mailer.sent] == ["Kept off the site this week"]
 
 
 def test_carousel_takes_first_image(repo_copy, fixture_images):
@@ -322,14 +330,17 @@ def test_auth_error_in_existence_check_still_raises(repo_copy, fixture_images):
         run(repo_copy, NOW, api, RULES, state, False, Mailer(), existence_check=True)
 
 
-def main_in(tmp_path, monkeypatch, *, since=None, now="2026-11-07T15:00:00+00:00"):
+def main_in(tmp_path, monkeypatch, *, since=None, now="2026-11-07T15:00:00+00:00", output=None):
     import sync
     sent = []
     monkeypatch.setattr(sync, "TOKEN_FILE", tmp_path / "token.enc")
     monkeypatch.setattr(sync, "STATE_FILE", tmp_path / "state.json")
     monkeypatch.setattr(sync.mail, "send", lambda subject, body, env=None: sent.append(subject) or True)
     monkeypatch.delenv("IG_TOKEN_KEY", raising=False)
-    monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
+    if output:
+        monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    else:
+        monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
     if since:
         save_state(tmp_path / "state.json", {**load_state(None), "since": since})
     return sync.main(["--repo", str(tmp_path), "--now", now]), sent
@@ -341,16 +352,31 @@ def test_not_connected_yet_is_quiet(tmp_path, monkeypatch, capsys):
     assert "Not connected yet" in capsys.readouterr().out
 
 
-def test_lapsed_connection_is_loud_once_a_day(tmp_path, monkeypatch, capsys):
-    code, sent = main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T08:30:00+00:00")
+def test_lapsed_connection_is_reported_at_any_hour(tmp_path, monkeypatch, capsys):
+    code, sent = main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T19:23:00+00:00")
     assert code == 2 and sent == ["The site has stopped following Instagram"]
     assert "setting up again" in capsys.readouterr().out
 
 
-def test_lapsed_connection_is_quiet_at_other_hours(tmp_path, monkeypatch, capsys):
-    code, sent = main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T15:00:00+00:00")
-    assert code == 0 and sent == []
+def test_lapsed_connection_is_reported_once_a_day(tmp_path, monkeypatch, capsys):
+    """The evening run speaks up; its backup tries the same evening stay quiet; the next evening speaks again."""
+    import sync
+    code, sent = main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T19:23:00+00:00")
+    assert code == 2 and len(sent) == 1
+    assert load_state(tmp_path / "state.json")["last_alert"] == "2026-11-07T19:23:00+00:00"
+    assert sync.main(["--repo", str(tmp_path), "--now", "2026-11-07T21:23:00+00:00"]) == 0
+    assert len(sent) == 1
     assert "setting up again" in capsys.readouterr().out
+    assert sync.main(["--repo", str(tmp_path), "--now", "2026-11-08T19:23:00+00:00"]) == 2
+    assert len(sent) == 2
+
+
+def test_a_lapse_warning_is_committed_so_the_backups_know(tmp_path, monkeypatch):
+    out = tmp_path / "github_output"
+    main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T19:23:00+00:00", output=out)
+    text = out.read_text(encoding="utf-8")
+    assert "changed=true" in text and "rebuild=false" in text
+    assert "message=Instagram: connection warning sent" in text
 
 
 # 7 Nov 2026, Ryan: "all new posts should be uploaded". Claude looks at each photo post that has no
