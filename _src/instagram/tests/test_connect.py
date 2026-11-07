@@ -25,10 +25,11 @@ def test_authorize_url():
     assert "scope=instagram_business_basic" in url
 
 
-def test_one_allow_tap_covers_photos_and_weekly_numbers():
-    """Insights rides along with the first tap, so Caitlin never has to tap allow twice."""
+def test_one_allow_tap_covers_photos_weekly_numbers_and_comments():
+    """Insights and comments ride along with the first tap, so Caitlin never has to tap allow twice."""
     scope = parse_qs(urlparse(authorize_url("123")).query)["scope"]
-    assert scope == ["instagram_business_basic,instagram_business_manage_insights"]
+    assert scope == ["instagram_business_basic,instagram_business_manage_insights,"
+                     "instagram_business_manage_comments"]
 
 
 def test_clean_code():
