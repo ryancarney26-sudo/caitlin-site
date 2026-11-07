@@ -29,6 +29,7 @@ from state import STATE_FILE, load_state, save_state    # noqa: E402
 from tokenstore import TOKEN_FILE, TokenError, decrypt_token, encrypt_token  # noqa: E402
 
 HOME = "00-home.html"
+ARCHIVE = "17-tattoos.html"       # "All my tattoos": every photo, newest first, never trimmed
 RECENT_HEADING = "recent-h"
 SUBJECT_HEADING = "photos-h"
 REFRESH_AFTER = datetime.timedelta(days=7)
@@ -277,6 +278,8 @@ def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
         pages.set(HOME, add_photo(pages.get(HOME), RECENT_HEADING, file, caption, keep=rules["home_count"]))
         for name in subject_pages:
             pages.set(name, add_photo(pages.get(name), SUBJECT_HEADING, file, caption, keep=None))
+        if ARCHIVE in pages.names():
+            pages.set(ARCHIVE, add_photo(pages.get(ARCHIVE), SUBJECT_HEADING, file, caption, keep=None))
         if not dry_run:
             (images / file).write_bytes(jpg)
         posts[m["id"]] = {"status": "live", "file": file, "caption": caption, "source": source,

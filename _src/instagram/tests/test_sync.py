@@ -120,6 +120,13 @@ def test_first_run_adds_two_photos(repo_copy, fixture_images):
     assert "b" not in state["posts"] and "d" not in state["posts"] and "e" not in state["posts"]
 
 
+def test_every_new_photo_also_joins_all_my_tattoos(repo_copy, fixture_images):
+    go(repo_copy, fixture_images)
+    archive = page(repo_copy, "17-tattoos.html")
+    assert SNAKE_FILE in gallery_lines(archive, "photos-h")[0]
+    assert PSALM_FILE in archive
+
+
 def test_dry_run_changes_nothing(repo_copy, fixture_images):
     before = page(repo_copy, "00-home.html")
     rep, state, mailer, _ = go(repo_copy, fixture_images, dry_run=True)

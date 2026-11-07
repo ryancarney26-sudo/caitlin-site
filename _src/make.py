@@ -92,7 +92,8 @@ AREA = [
     {"@type": "AdministrativeArea", "name": "North West England"},
 ]
 
-# The four kinds of work, in the order they appear in the strip at the foot of each page.
+# The four kinds of work, in the order they appear in the strip at the foot of each page, then the
+# page with every photo (added 7 Nov 2026, for the Instagram backfill).
 # Cover-ups and memorial came out on 4 Nov 2026: Caitlin does both now and then, but doesn't
 # want a page for either until she has enough work to fill it. The drafts are kept in pages-off/.
 WORK = [
@@ -100,6 +101,7 @@ WORK = [
     ("/christian-tattoos/", "Christian pieces"),
     ("/script-tattoos/", "Script and lettering"),
     ("/walk-in-tattoos/", "Walk-ins and small pieces"),
+    ("/tattoos/", "All my tattoos"),
 ]
 
 TEMPLATE = (SRC / "template.html").read_text(encoding="utf-8")
