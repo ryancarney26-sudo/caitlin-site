@@ -21,6 +21,7 @@ sys.path.insert(0, str(HERE))
 
 import mail                                             # noqa: E402
 from api import Api, ApiError, parse_timestamp          # noqa: E402
+from describe import DescribeError, make_describer, pages_for_kinds  # noqa: E402
 from gallery import add_photo, remove_photo, set_caption  # noqa: E402
 from gate import load_rules, pages_for, site_caption    # noqa: E402
 from images import ImageError, file_name, process_image  # noqa: E402
@@ -49,6 +50,7 @@ class Report:
     updated: list = field(default_factory=list)    # files whose caption changed
     removed: list = field(default_factory=list)    # files taken off the site
     skipped: list = field(default_factory=list)    # (post id, reason)
+    kept_off: list = field(default_factory=list)   # post ids remembered as not for the site
     notes: list = field(default_factory=list)
     rebuild: bool = False
     changed: bool = False
@@ -59,6 +61,9 @@ def commit_message(rep):
     parts = ([f"add {caption}" for _, caption in rep.added]
              + [f"update {f}" for f in rep.updated]
              + [f"remove {f}" for f in rep.removed])
+    if rep.kept_off:
+        n = len(rep.kept_off)
+        parts.append(f"kept off {n} post" + ("" if n == 1 else "s"))
     if "token refreshed" in rep.notes:
         parts.append("token refreshed")
     if any(note.startswith("digest sent") for note in rep.notes):
@@ -121,7 +126,8 @@ class Pages:
 
 
 def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
-        token=None, token_key=None, token_file=None):
+        token=None, token_key=None, token_file=None, describer=None):
+    """describer: Claude looking at a photo (describe.make_describer), or None for her lines only."""
     rep = Report()
     if not state.get("since"):
         raise SyncError("no switch-on date in state.json")
@@ -162,10 +168,64 @@ def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
         rep.removed.append(rec["file"])
         rep.rebuild = True
 
+    def recaption(rec, caption, source):
+        for name in pages.names():
+            pages.set(name, set_caption(pages.get(name), rec["file"], caption))
+        rec["caption"], rec["source"] = caption, source
+        rep.updated.append(rec["file"])
+        rep.rebuild = True
+
+    def for_digest(m, ts):
+        if now - ts <= DIGEST_WINDOW:
+            candidates.append(((m.get("caption") or "(no caption)").strip()[:60], m.get("permalink")))
+
+    # Claude is asked about a photo only when she wrote no line, at most so many times a run.
+    claude = {"asked": 0, "stopped": describer is None, "cap": rules.get("max_claude_per_run", 10),
+              "settled": False}
+
+    def ask_claude(m, jpg, on_final):
+        """Claude's Description, or None with the reason recorded. on_final(reason) runs when the
+        same photo would fail again, so the robot remembers instead of paying to ask every hour."""
+        if claude["stopped"] or claude["asked"] >= claude["cap"]:
+            rep.skipped.append((m["id"], "waiting for Claude"))
+            return None
+        claude["asked"] += 1
+        try:
+            return describer(jpg, m.get("caption"))
+        except DescribeError as e:
+            if e.stop_all:
+                claude["stopped"] = True
+                rep.notes.append(f"Claude: {e}")
+            rep.skipped.append((m["id"], f"Claude: {e}"))
+            if not e.retry:
+                on_final(str(e))
+            return None
+
+    def settle(rec):
+        """Her line is gone but Claude can't replace it: her old caption stays, and Claude isn't asked again."""
+        rec["source"] = "kept"
+        claude["settled"] = True
+
+    def keep_off(m, reason):
+        posts[m["id"]] = {"status": "skipped", "reason": reason, "permalink": m.get("permalink"),
+                          "timestamp": m["timestamp"]}
+        rep.kept_off.append(m["id"])
+        for_digest(m, parse_timestamp(m["timestamp"]))
+
+    def fetch_photo(m, photo_url):
+        try:
+            return process_image(api.download(photo_url))
+        except ImageError as e:
+            rep.skipped.append((m["id"], str(e)))
+        except Exception as e:                     # a CDN hiccup: try again next hour
+            rep.skipped.append((m["id"], f"download failed: {e}"))
+        return None
+
     media = api.fetch_media()
     fetched_ids = {m["id"] for m in media}
-    new_live = []          # (timestamp, post id, record), to be added oldest first
-    candidates = []        # photo posts without a line, for the weekly digest
+    new_live = []          # (timestamp, post, her line or None, photo url), added oldest first
+    redescribe = []        # live photos whose line she took out: Claude writes the caption instead
+    candidates = []        # posts kept off the site this week, for the Sunday email
 
     for m in media:
         ts = parse_timestamp(m["timestamp"])
@@ -176,53 +236,71 @@ def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
         photo_url, reason = pick_photo(m)
 
         if rec and rec["status"] == "live":
-            if line is None:
-                take_down(m["id"], rec)
-            elif line != rec["caption"]:
-                for name in pages.names():
-                    pages.set(name, set_caption(pages.get(name), rec["file"], line))
-                rec["caption"] = line
-                rep.updated.append(rec["file"])
-                rep.rebuild = True
+            if line is not None and line != rec["caption"]:
+                recaption(rec, line, "hers")                 # her line always wins
+            elif line is None and rec.get("source", "hers") == "hers" and describer is not None:
+                redescribe.append((rec, m, photo_url))       # she took her line out; the photo stays
+            continue
+        if rec and rec["status"] in ("skipped", "removed") and line is None:
+            if rec["status"] == "skipped":                   # Claude already said no: don't pay again
+                rep.skipped.append((m["id"], rec["reason"]))
+                for_digest(m, ts)
             continue
 
         if reason:
             rep.skipped.append((m["id"], reason))
             continue
-        if line is None:
+        if line is None and describer is None:
             rep.skipped.append((m["id"], "no line"))
-            if now - ts <= DIGEST_WINDOW:
-                candidates.append(((m.get("caption") or "(no caption)").strip()[:60], m.get("permalink")))
+            for_digest(m, ts)
             continue
         new_live.append((ts, m, line, photo_url))
 
     taken = set()
     for ts, m, line, photo_url in sorted(new_live, key=lambda t: t[0]):
-        try:
-            data = api.download(photo_url)
-            jpg = process_image(data)
-        except ImageError as e:
-            rep.skipped.append((m["id"], str(e)))
+        jpg = fetch_photo(m, photo_url)
+        if jpg is None:
             continue
-        except Exception as e:                     # a CDN hiccup: try again next hour
-            rep.skipped.append((m["id"], f"download failed: {e}"))
-            continue
-        file = file_name(line, ts.date(), lambda n: n in taken or (images / n).exists())
+        if line is not None:
+            caption, source, subject_pages = line, "hers", pages_for(line, rules)
+        else:
+            d = ask_claude(m, jpg, on_final=lambda why, m=m: keep_off(m, f"no caption: {why}"))
+            if d is None:
+                continue
+            if not d.finished_tattoo:
+                rep.skipped.append((m["id"], "not a tattoo"))
+                keep_off(m, "not a tattoo")
+                continue
+            caption, source, subject_pages = d.caption, "claude", pages_for_kinds(d.kinds)
+        file = file_name(caption, ts.date(), lambda n: n in taken or (images / n).exists())
         taken.add(file)
-        subject_pages = pages_for(line, rules)
-        pages.set(HOME, add_photo(pages.get(HOME), RECENT_HEADING, file, line, keep=rules["home_count"]))
+        pages.set(HOME, add_photo(pages.get(HOME), RECENT_HEADING, file, caption, keep=rules["home_count"]))
         for name in subject_pages:
-            pages.set(name, add_photo(pages.get(name), SUBJECT_HEADING, file, line, keep=None))
+            pages.set(name, add_photo(pages.get(name), SUBJECT_HEADING, file, caption, keep=None))
         if not dry_run:
             (images / file).write_bytes(jpg)
-        posts[m["id"]] = {"status": "live", "file": file, "caption": line, "permalink": m.get("permalink"),
-                          "timestamp": m["timestamp"], "pages": subject_pages}
-        rep.added.insert(0, (file, line))
+        posts[m["id"]] = {"status": "live", "file": file, "caption": caption, "source": source,
+                          "permalink": m.get("permalink"), "timestamp": m["timestamp"], "pages": subject_pages}
+        rep.added.insert(0, (file, caption))
         rep.rebuild = True
+
+    for rec, m, photo_url in redescribe:
+        jpg = fetch_photo(m, photo_url)
+        if jpg is None:
+            continue
+        d = ask_claude(m, jpg, on_final=lambda why, rec=rec: settle(rec))
+        if d is None:
+            continue
+        if d.finished_tattoo:
+            recaption(rec, d.caption, "claude")
+        else:
+            settle(rec)
+    state_changed = state_changed or bool(rep.kept_off) or claude["settled"]
+
     if not dry_run:
-        for file, line in rep.added:
+        for file, caption in rep.added:
             rec = next(r for r in posts.values() if r.get("file") == file)
-            notify(mail.went_live(line, rec["permalink"]))
+            notify(mail.went_live(caption, rec["permalink"], by_claude=rec["source"] == "claude"))
 
     # Once a day, is every photo we put up still on Instagram?
     if existence_check is None:
@@ -251,7 +329,7 @@ def run(repo, now, api, rules, state, dry_run, mailer, existence_check=None,
         pages.write()
     rep.changed = (not dry_run) and (rep.rebuild or state_changed)
     rep.rebuild = rep.rebuild and not dry_run
-    rep.commit_message = commit_message(rep)
+    rep.commit_message = commit_message(rep) or ("Instagram: notes updated" if rep.changed else "")
     return rep
 
 
@@ -298,6 +376,12 @@ def write_outputs(rep):
             f.write(f"rebuild={str(rep.rebuild).lower()}\n")
             f.write(f"changed={str(rep.changed).lower()}\n")
             f.write(f"message={rep.commit_message}\n")
+
+
+def describer_from_env(env):
+    """Claude looks at photos only when its key is set; without it, only posts with her line go up."""
+    key = (env.get("ANTHROPIC_API_KEY") or "").strip()
+    return make_describer(key) if key else None
 
 
 def fail(reason, now):
@@ -354,9 +438,12 @@ def main(argv=None):
         api = Api(token)
         token_file = TOKEN_FILE
 
+    describer = None if args.fixture else describer_from_env(os.environ)
+    if describer is None and not args.fixture:
+        print("Claude is not set up (no ANTHROPIC_API_KEY), so only posts with her line go up.")
     try:
         rep = run(repo, now, api, rules, state, args.dry_run, mail.send,
-                  token=token, token_key=key, token_file=token_file)
+                  token=token, token_key=key, token_file=token_file, describer=describer)
     except ApiError as e:
         if e.is_auth:
             return fail(f"Instagram rejected the key ({e}). " + RECONNECT, now)

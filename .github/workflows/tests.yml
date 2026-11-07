@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [main, instagram-photos]
+    branches: ["**"]      # every branch, so a change is tested on the runner's Python before it lands
   pull_request:
 
 permissions:

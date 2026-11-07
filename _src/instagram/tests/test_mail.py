@@ -64,10 +64,19 @@ def test_went_live_copy():
     assert "Edit the caption" in body
 
 
+def test_went_live_copy_for_a_claude_caption():
+    subject, body = went_live("Black and grey rose tattoo on the shoulder", "https://www.instagram.com/p/f/",
+                              by_claude=True)
+    assert subject == "Going on the site: Black and grey rose tattoo on the shoulder"
+    assert "Claude wrote this caption from the photo" in body
+    assert "add one line" in body and "https://www.instagram.com/p/f/" in body
+
+
 def test_digest_copy():
     subject, body = digest([("Had a lot of fun doing this twisty snake", "https://www.instagram.com/p/a/")])
-    assert subject == "Posts without a line this week"
+    assert subject == "Kept off the site this week"
     assert "https://www.instagram.com/p/a/" in body and "twisty snake" in body
+    assert "add one line" in body
 
 
 def test_needs_reconnect_copy():

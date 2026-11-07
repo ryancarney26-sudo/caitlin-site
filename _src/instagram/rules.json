@@ -1,5 +1,6 @@
 {
   "home_count": 12,
+  "max_claude_per_run": 10,
   "min_words": 3,
   "max_words": 20,
   "places": [

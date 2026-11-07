@@ -50,38 +50,47 @@ Portrait crops (4:5) suit the gallery best, but any shape works.
 
 ### Putting a tattoo on the site (for Caitlin)
 
-Post the tattoo on Instagram as normal.
-Somewhere in the caption, write **one line that says what it is and where it sits.**
-For example: **Twisty snake from my flash, on the forearm.**
+**Post the tattoo on Instagram as normal. That's all.**
+Within the hour it is on the site. Claude looks at the photo and writes a short, plain caption:
+what the tattoo shows, its style, and where it sits.
+Posts that aren't a finished tattoo stay off: offers, events, flash sheets, selfies.
+Videos never go up. Posts from before 6 November 2026 are left alone.
+Once the emails are set up, you get one each time a photo goes up, with its caption.
 
-Keep that line short and plain. No hashtags, no @names, no prices, no question marks on that line.
-An exclamation mark at the end is fine. "Forearm" is clearer than "arm"; "on the back" is clearer than "back".
-The rest of the caption can be as chatty as you like. It is not used.
-The photo is on the site within the hour, with that line as its caption.
-
-To change the caption, edit the post. The site follows within the hour.
-To take a photo off the site, delete the post, or take the line out of the caption.
-Videos never go up. Posts from before the day we connected never go up.
-If a post has no line, nothing happens. On Sunday evening an email lists the week's posts without one.
+**If Claude gets a caption wrong,** add one line to the Instagram caption that says what it is and
+where it sits. For example: **Twisty snake from my flash, on the forearm.**
+Your line replaces Claude's within the hour. Keep it plain: no hashtags, @names, prices or question marks.
+**If a tattoo was kept off by mistake,** add a line the same way, and it goes up.
+**To take a photo off the site,** delete the post, or ask Ryan.
+On Sunday evening an email lists the week's posts that were kept off.
 
 ### How it works (for Ryan)
 
 Every hour, at 17 minutes past, GitHub runs the workflow **Instagram photos**
 (`.github/workflows/instagram.yml`). It asks Instagram for Caitlin's latest 25 posts. For each
-photo post with a usable line, it downloads the photo, turns it upright, shrinks it to at most
-1400px, compresses it under 400 KB, strips every scrap of metadata, and adds it to the top of
-"Recent work" on the home page (the oldest drops off after twelve) and to any subject page whose
-words match the line. Then it rebuilds with `--final`, commits to `main`, and GitHub Pages
-publishes. If the build fails, nothing is committed and GitHub emails you.
+new photo post it downloads the photo, turns it upright, shrinks it to at most 1400px, compresses
+it under 400 KB, and strips every scrap of metadata. Then it picks the caption:
 
-An edited caption updates the site. A deleted post, or a line taken out, removes the photo.
-Once a day, on the 04:17 run, it checks that every photo it put up is still on Instagram.
+- **Her line, if her caption has one.** The subject pages come from its words (`rules.json`).
+- **Otherwise Claude's** (`describe.py`, Claude Opus 5.5). Claude says whether the photo is a
+  finished tattoo, writes one plain line, and picks the subject pages. A post that isn't a finished
+  tattoo is kept off and remembered in `state.json`, so Claude is never asked twice about it.
+  About 2p a photo. At most 10 look-ups a run (`max_claude_per_run` in `rules.json`).
+
+It adds the photo to the top of "Recent work" on the home page (the oldest drops off after twelve)
+and to its subject pages, rebuilds with `--final`, commits to `main`, and GitHub Pages publishes.
+If the build fails, nothing is committed and GitHub emails you.
+
+Her line, added or edited, replaces the caption within the hour. Taking her line out hands the
+caption back to Claude; the photo stays. A deleted post comes off on the next daily check, on the
+04:17 run. Without the Claude key, only posts with her line go up, as before 7 November 2026.
 Photos from Instagram come at 1080px on the long side, a little smaller than hand-exported ones.
 
 The robot's files are in `_src/instagram/`:
 
 - `sync.py` is the hourly run. `connect.py` is the one-off connection.
-- `gate.py` finds the one line. `gallery.py` edits the photo lines. `images.py` shrinks photos.
+- `gate.py` finds her line. `describe.py` asks Claude about a photo. `gallery.py` edits the
+  photo lines. `images.py` shrinks photos.
 - `api.py` talks to Instagram. `mail.py` sends the emails. `tokenstore.py` keeps the key safe.
 - `rules.json` holds the body words, the banned words, the subject-page words, and how many
   photos "Recent work" keeps. Edit it and push; no code change needed.
@@ -94,6 +103,9 @@ The robot's files are in `_src/instagram/`:
 Set each one yourself with `gh secret set NAME` and type the value when asked.
 
 - `IG_TOKEN_KEY`: the key that unlocks `token.enc`. `connect.py` sets this one for you.
+- `ANTHROPIC_API_KEY`: the key Claude's captions need. Make it on your own Anthropic account
+  (console.anthropic.com, API keys), buy a few pounds of credit, and set a monthly spend limit
+  of about $5 on the limits page, so nothing can run away. Without it, only posts with her line go up.
 - `MAIL_FROM`: your Gmail address. `MAIL_APP_PASSWORD`: an app password for it (Google
   account, Security, 2-Step Verification, App passwords). `MAIL_TO`: who gets the emails,
   comma-separated. Without these three, no emails are sent and the run log is the record.
@@ -131,7 +143,10 @@ Set each one yourself with `gh secret set NAME` and type the value when asked.
 ### Running it by hand
 
 GitHub, Actions, **Instagram photos**, Run workflow. Tick **dry run** to see what it would do
-without changing anything.
+without changing anything. A dry run asks Claude about new posts too, so it costs a few pence.
+
+Tick **check Claude** instead to ask Claude about three photos already on the site and print what
+it says. It changes nothing and costs about 6p. Use it once after setting `ANTHROPIC_API_KEY`.
 
 ### If it stops
 
@@ -144,6 +159,8 @@ without changing anything.
   5 to 7 of Connecting it again. The switch-on date and the photos already up are kept.
   The log says this every hour, but the run only fails (and GitHub only emails you) once a day,
   on the 08:17 run, so a lapse does not flood your inbox. Times are UTC.
+- **The log says "Claude: ... HTTP 401" or "HTTP 403".** The Anthropic key is wrong, or out of
+  credit. New posts wait, and go up within the hour once the key works again.
 - **The build failed.** GitHub emails you. The log names the missing image or the open slot.
 - **A wrong photo or caption went up.** Caitlin edits or deletes the post. The site follows within
   the hour, or within a day for a deleted post.

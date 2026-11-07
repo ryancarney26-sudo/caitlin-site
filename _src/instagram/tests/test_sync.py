@@ -41,6 +41,8 @@ def fixture_images(tmp_path):
     (d / "b.jpg").write_bytes(photo_bytes((40, 180, 40)))
     (d / "c2.jpg").write_bytes(photo_bytes((40, 40, 180)))
     (d / "e.jpg").write_bytes(photo_bytes((120, 120, 120)))
+    (d / "f.jpg").write_bytes(photo_bytes((150, 90, 60)))
+    (d / "g.jpg").write_bytes(photo_bytes((60, 90, 150)))
     return d
 
 
@@ -145,16 +147,16 @@ def test_caption_edit_updates_site(repo_copy, fixture_images):
     assert mailer.sent == []
 
 
-def test_line_removed_takes_photo_down(repo_copy, fixture_images):
+def test_taking_her_line_out_without_claude_keeps_the_photo(repo_copy, fixture_images):
+    """Since 7 Nov every photo post belongs on the site, so a line taken out no longer takes it down."""
     _, state, _, _ = go(repo_copy, fixture_images)
     media = copy.deepcopy(MEDIA)
     media[0]["caption"] = "Had a lot of fun doing this twisty snake from my flash"
     rep, state, _, _ = go(repo_copy, fixture_images, media=media, state=state)
-    assert rep.removed == [SNAKE_FILE] and rep.rebuild
-    assert not (repo_copy / "images" / SNAKE_FILE).exists()
-    assert SNAKE_FILE not in page(repo_copy, "00-home.html")
-    assert SNAKE_FILE not in page(repo_copy, "15-walk-in-tattoos.html")
-    assert state["posts"]["a"]["status"] == "removed"
+    assert rep.removed == [] and rep.updated == []
+    assert (repo_copy / "images" / SNAKE_FILE).exists()
+    assert "| Had a lot of fun doing this twisty snake from my flash, on the forearm -->" in page(repo_copy, "00-home.html")
+    assert state["posts"]["a"]["status"] == "live"
 
 
 def test_deleted_post_removed_on_existence_check(repo_copy, fixture_images):
@@ -211,7 +213,7 @@ def test_token_not_refreshed_when_fresh(repo_copy, fixture_images):
 def test_digest_on_sunday_evening(repo_copy, fixture_images):
     _, state, _, _ = go(repo_copy, fixture_images)
     rep, state, mailer, _ = go(repo_copy, fixture_images, state=state, now=SUNDAY_EVENING)
-    assert [s for s, _ in mailer.sent] == ["Posts without a line this week"]
+    assert [s for s, _ in mailer.sent] == ["Kept off the site this week"]
     assert "https://www.instagram.com/p/bbb/" in mailer.sent[0][1]
     assert "https://www.instagram.com/p/ddd/" not in mailer.sent[0][1]   # a video is never a candidate
     assert state["last_digest"] == "2026-11-08T18:30:00+00:00"
@@ -342,6 +344,192 @@ def test_lapsed_connection_is_quiet_at_other_hours(tmp_path, monkeypatch, capsys
     code, sent = main_in(tmp_path, monkeypatch, since=SINCE, now="2026-11-07T15:00:00+00:00")
     assert code == 0 and sent == []
     assert "setting up again" in capsys.readouterr().out
+
+
+# 7 Nov 2026, Ryan: "all new posts should be uploaded". Claude looks at each photo post that has no
+# line of hers: a finished tattoo goes up with Claude's plain caption, anything else is kept off.
+
+from describe import DescribeError, Description  # noqa: E402
+
+F = {"id": "f", "caption": "So happy with how this one healed 🖤", "media_type": "IMAGE",
+     "media_url": "https://cdn.example/f.jpg", "permalink": "https://www.instagram.com/p/fff/",
+     "timestamp": "2026-11-05T12:00:00+0000"}
+G = {"id": "g", "caption": "New flash sheet up for this week's walk-ins", "media_type": "IMAGE",
+     "media_url": "https://cdn.example/g.jpg", "permalink": "https://www.instagram.com/p/ggg/",
+     "timestamp": "2026-11-05T13:00:00+0000"}
+MEDIA2 = [MEDIA[0], G, F] + MEDIA[1:]
+ROSE = "Black and grey rose tattoo on the shoulder"
+ANSWERS = {
+    F["caption"]: Description(True, ROSE, ["small"]),
+    G["caption"]: Description(False, "", []),
+    MEDIA[1]["caption"]: Description(False, "", []),        # the colour realism offer
+}
+
+
+class FakeDescriber:
+    def __init__(self, answers):
+        self.answers = answers
+        self.calls = []
+
+    def __call__(self, jpeg, caption):
+        self.calls.append(caption)
+        answer = self.answers[caption]
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+
+def rose_file(state):
+    return state["posts"]["f"]["file"]
+
+
+def test_claude_captions_photo_posts_without_her_line(repo_copy, fixture_images):
+    describer = FakeDescriber(ANSWERS)
+    rep, state, mailer, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=describer)
+    assert sorted(describer.calls) == sorted([F["caption"], G["caption"], MEDIA[1]["caption"]])
+    assert ROSE in [caption for _, caption in rep.added]
+    f = state["posts"]["f"]
+    assert (f["status"], f["source"], f["pages"]) == ("live", "claude", ["15-walk-in-tattoos.html"])
+    assert state["posts"]["a"]["source"] == "hers"
+    assert state["posts"]["g"] == {"status": "skipped", "reason": "not a tattoo",
+                                   "permalink": G["permalink"], "timestamp": G["timestamp"]}
+    assert state["posts"]["b"]["reason"] == "not a tattoo"
+    assert ROSE in page(repo_copy, "00-home.html") and ROSE in page(repo_copy, "15-walk-in-tattoos.html")
+    rose_mail = next(body for subject, body in mailer.sent if subject == f"Going on the site: {ROSE}")
+    assert "Claude wrote this caption" in rose_mail
+
+
+def test_kept_off_posts_are_not_asked_about_again(repo_copy, fixture_images):
+    describer = FakeDescriber(ANSWERS)
+    _, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=describer)
+    rep, _, _, _ = go(repo_copy, fixture_images, media=MEDIA2, state=state, describer=describer)
+    assert len(describer.calls) == 3
+    assert not rep.changed
+
+
+def test_her_line_replaces_claudes_caption(repo_copy, fixture_images):
+    _, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=FakeDescriber(ANSWERS))
+    media = copy.deepcopy(MEDIA2)
+    media[2]["caption"] = "Rose from my flash, on the shoulder"
+    describer = FakeDescriber(ANSWERS)
+    rep, state, _, _ = go(repo_copy, fixture_images, media=media, state=state, describer=describer)
+    assert rep.updated == [rose_file(state)] and describer.calls == []
+    assert (state["posts"]["f"]["caption"], state["posts"]["f"]["source"]) == ("Rose from my flash, on the shoulder", "hers")
+    assert "| Rose from my flash, on the shoulder -->" in page(repo_copy, "00-home.html")
+
+
+def test_taking_her_line_out_lets_claude_caption_it(repo_copy, fixture_images):
+    _, state, _, _ = go(repo_copy, fixture_images)
+    media = copy.deepcopy(MEDIA)
+    no_line = "Had a lot of fun doing this twisty snake from my flash"
+    media[0]["caption"] = no_line
+    snake = "Black and grey snake tattoo on the forearm"
+    describer = FakeDescriber({no_line: Description(True, snake, ["small"]),
+                               MEDIA[1]["caption"]: Description(False, "", [])})
+    rep, state, _, _ = go(repo_copy, fixture_images, media=media, state=state, describer=describer)
+    assert rep.updated == [SNAKE_FILE] and rep.removed == []
+    assert (state["posts"]["a"]["caption"], state["posts"]["a"]["source"]) == (snake, "claude")
+    assert f"| {snake} -->" in page(repo_copy, "00-home.html")
+    assert (repo_copy / "images" / SNAKE_FILE).exists()
+
+
+NO_LINE = "Had a lot of fun doing this twisty snake from my flash"
+
+
+def line_taken_out(repo_copy, fixture_images, answer):
+    """Run 1 puts the snake up with her line; run 2 sees the line gone and asks Claude."""
+    _, state, _, _ = go(repo_copy, fixture_images)
+    media = copy.deepcopy(MEDIA)
+    media[0]["caption"] = NO_LINE
+    describer = FakeDescriber({NO_LINE: answer, MEDIA[1]["caption"]: Description(False, "", [])})
+    rep, state, _, _ = go(repo_copy, fixture_images, media=media, state=state, describer=describer)
+    return rep, state, describer, media
+
+
+def test_line_out_and_claude_sees_no_tattoo_keeps_her_caption_and_asks_once(repo_copy, fixture_images):
+    rep, state, describer, media = line_taken_out(repo_copy, fixture_images, Description(False, "", []))
+    assert state["posts"]["a"]["status"] == "live" and SNAKE_FILE in page(repo_copy, "00-home.html")
+    assert rep.changed and rep.commit_message.startswith("Instagram: ")
+    _, _, _, _ = go(repo_copy, fixture_images, media=media, state=state, describer=describer)
+    assert describer.calls.count(NO_LINE) == 1
+
+
+def test_line_out_and_claude_fails_for_good_keeps_the_photo_live(repo_copy, fixture_images):
+    rep, state, describer, media = line_taken_out(repo_copy, fixture_images,
+                                                  DescribeError("answer cut off", retry=False))
+    assert state["posts"]["a"]["status"] == "live"
+    assert SNAKE_FILE in page(repo_copy, "00-home.html") and (repo_copy / "images" / SNAKE_FILE).exists()
+    _, _, _, _ = go(repo_copy, fixture_images, media=media, state=state, describer=describer)
+    assert describer.calls.count(NO_LINE) == 1
+
+
+def test_claude_trouble_is_tried_again_next_hour(repo_copy, fixture_images):
+    busy = FakeDescriber({**ANSWERS, F["caption"]: DescribeError("overloaded", retry=True)})
+    rep, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=busy)
+    assert "f" not in state["posts"]
+    assert any(pid == "f" and reason.startswith("Claude") for pid, reason in rep.skipped)
+    rep, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, state=state, describer=FakeDescriber(ANSWERS))
+    assert state["posts"]["f"]["status"] == "live"
+
+
+def test_a_bad_key_stops_claude_for_the_run(repo_copy, fixture_images):
+    refused = DescribeError("HTTP 401", retry=True, stop_all=True)
+    describer = FakeDescriber({key: refused for key in ANSWERS})
+    rep, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=describer)
+    assert len(describer.calls) == 1
+    assert not any(pid in state["posts"] for pid in ("b", "f", "g"))
+    assert any("Claude" in note for note in rep.notes)
+
+
+def test_claude_is_asked_at_most_n_times_a_run(repo_copy, fixture_images):
+    rules = {**RULES, "max_claude_per_run": 1}
+    describer = FakeDescriber(ANSWERS)
+    state = fresh_state()
+    rep = run(repo_copy, NOW, FakeApi(copy.deepcopy(MEDIA2), fixture_images), rules, state, False, Mailer(),
+              describer=describer)
+    assert len(describer.calls) == 1
+    assert sum(reason == "waiting for Claude" for _, reason in rep.skipped) == 2
+
+
+def test_a_final_claude_failure_is_remembered(repo_copy, fixture_images):
+    cut_off = FakeDescriber({**ANSWERS, F["caption"]: DescribeError("answer cut off", retry=False)})
+    _, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=cut_off)
+    assert state["posts"]["f"]["status"] == "skipped" and "answer cut off" in state["posts"]["f"]["reason"]
+    _, _, _, _ = go(repo_copy, fixture_images, media=MEDIA2, state=state, describer=cut_off)
+    assert cut_off.calls.count(F["caption"]) == 1
+
+
+def test_kept_off_posts_are_in_the_sunday_list(repo_copy, fixture_images):
+    _, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=FakeDescriber(ANSWERS))
+    _, state, mailer, _ = go(repo_copy, fixture_images, media=MEDIA2, state=state, now=SUNDAY_EVENING,
+                             describer=FakeDescriber(ANSWERS))
+    subject, body = mailer.sent[-1]
+    assert subject == "Kept off the site this week"
+    assert G["permalink"] in body and "add one line" in body
+    assert F["permalink"] not in body                      # the rose went up
+
+
+def test_a_run_that_only_keeps_posts_off_has_a_commit_message(repo_copy, fixture_images):
+    describer = FakeDescriber({G["caption"]: Description(False, "", []),
+                               MEDIA[1]["caption"]: Description(False, "", [])})
+    _, state, _, _ = go(repo_copy, fixture_images)            # a and c up, with her lines
+    rep, _, _, _ = go(repo_copy, fixture_images, media=[G] + MEDIA, state=state, describer=describer)
+    assert rep.changed and not rep.rebuild
+    assert rep.commit_message == "Instagram: kept off 2 posts"
+
+
+def test_claude_is_used_only_when_its_key_is_set(monkeypatch):
+    import sync
+    monkeypatch.setattr(sync, "make_describer", lambda key: ("describer for", key))
+    assert sync.describer_from_env({}) is None
+    assert sync.describer_from_env({"ANTHROPIC_API_KEY": "  "}) is None
+    assert sync.describer_from_env({"ANTHROPIC_API_KEY": "k"}) == ("describer for", "k")
+
+
+def test_commit_message_for_one_post_kept_off():
+    rep = Report()
+    rep.kept_off = ["g"]
+    assert commit_message(rep) == "Instagram: kept off 1 post"
 
 
 def test_cli_dry_run_against_fixture(repo_copy, fixture_images):

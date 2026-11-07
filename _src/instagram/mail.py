@@ -28,33 +28,44 @@ def send(subject, body, env=None):
     return True
 
 
-def went_live(caption, permalink):
+def went_live(caption, permalink, by_claude=False):
     subject = f"Going on the site: {caption}"
-    body = (
-        "This is going on the site within the hour:\n"
-        "\n"
-        f"{caption}\n"
-        "\n"
-        f"It will be here: {SITE_RECENT}\n"
-        f"The Instagram post: {permalink}\n"
-        "\n"
-        "Wrong caption? Edit the caption on Instagram. The site follows within the hour.\n"
-        "Don't want it on the site? Delete the post, or take the line out of the caption.\n"
-    )
-    return subject, body
+    lines = [
+        "This is going on the site within the hour:",
+        "",
+        caption,
+        "",
+        f"It will be here: {SITE_RECENT}",
+        f"The Instagram post: {permalink}",
+        "",
+    ]
+    if by_claude:
+        lines += [
+            "Claude wrote this caption from the photo.",
+            "Wrong? On Instagram, add one line to the caption that says what the tattoo is",
+            "and where it sits. Your line replaces this one within the hour.",
+            "Don't want it on the site at all? Delete the post, or ask Ryan.",
+        ]
+    else:
+        lines += [
+            "Wrong caption? Edit the caption on Instagram. The site follows within the hour.",
+            "Don't want it on the site? Delete the post, or ask Ryan.",
+        ]
+    return subject, "\n".join(lines) + "\n"
 
 
 def digest(items):
     lines = [
-        "These posts from the last week have no line for the site, so they are not on it.",
-        "Add one line to the caption that says what the tattoo is and where it sits,",
-        "and it goes up within the hour.",
+        "These posts from the last week are not on the site. Claude did not see a finished",
+        "tattoo in them, or could not describe them.",
+        "If one should be on the site, add one line to its caption on Instagram that says",
+        "what the tattoo is and where it sits, and it goes up within the hour.",
         "",
     ]
     for caption_start, permalink in items:
         lines.append(f"- {caption_start}")
         lines.append(f"  {permalink}")
-    return "Posts without a line this week", "\n".join(lines) + "\n"
+    return "Kept off the site this week", "\n".join(lines) + "\n"
 
 
 def needs_reconnect(reason):

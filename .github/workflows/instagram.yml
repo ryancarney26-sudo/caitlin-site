@@ -1,5 +1,6 @@
-# The robot: every hour, Caitlin's new Instagram photo posts that carry a usable caption line
-# go onto the site. See README.md, "New photos from Instagram".
+# The robot: every hour, Caitlin's new Instagram photo posts go onto the site. Her own caption
+# line wins; otherwise Claude writes the caption, and keeps off anything that isn't a finished
+# tattoo. See README.md, "New photos from Instagram".
 name: Instagram photos
 
 on:
@@ -9,6 +10,10 @@ on:
     inputs:
       dry_run:
         description: "Only report what would change. Change nothing."
+        type: boolean
+        default: false
+      check_claude:
+        description: "Only ask Claude about three photos already on the site. Change nothing."
         type: boolean
         default: false
 
@@ -22,6 +27,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,10 +40,22 @@ jobs:
       - name: Install
         run: pip install -r _src/instagram/requirements.txt
 
+      - name: Check Claude
+        if: inputs.check_claude == true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: >-
+          python -I _src/instagram/describe.py --check
+          images/tattoo-preston-medusa.jpg
+          images/character-portrait-tattoo-preston-01.jpg
+          images/share-home.jpg
+
       - name: Look at Instagram
         id: sync
+        if: inputs.check_claude != true
         env:
           IG_TOKEN_KEY: ${{ secrets.IG_TOKEN_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           MAIL_APP_PASSWORD: ${{ secrets.MAIL_APP_PASSWORD }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
