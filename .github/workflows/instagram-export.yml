@@ -1,0 +1,40 @@
+# One-off: export Caitlin's Instagram photo posts back to a date, as a download (an artifact), for
+# backfilling the site. Changes nothing on the site. See _src/instagram/export.py.
+name: Instagram export
+
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "Oldest post date to export, YYYY-MM-DD"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -r _src/instagram/requirements.txt
+
+      - name: Export
+        env:
+          IG_TOKEN_KEY: ${{ secrets.IG_TOKEN_KEY }}
+          SINCE: ${{ inputs.since }}
+        run: python -I _src/instagram/export.py --since "$SINCE" --out export
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instagram-export
+          path: export
+          retention-days: 1

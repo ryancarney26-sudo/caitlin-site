@@ -58,6 +58,25 @@ class Api:
     def fetch_media(self, limit=25):
         return _get_json(self._url("me/media", fields=MEDIA_FIELDS, limit=limit)).get("data", [])
 
+    def fetch_media_since(self, since, limit=50, max_pages=40):
+        """Every post back to `since` (an aware datetime), newest first, a page at a time."""
+        out, after = [], None
+        for _ in range(max_pages):
+            params = {"fields": MEDIA_FIELDS, "limit": limit}
+            if after:
+                params["after"] = after
+            page = _get_json(self._url("me/media", **params))
+            data = page.get("data", [])
+            for m in data:
+                if parse_timestamp(m["timestamp"]) < since:
+                    return out
+                out.append(m)
+            paging = page.get("paging", {})
+            after = paging.get("cursors", {}).get("after")
+            if not data or not paging.get("next") or not after:
+                return out
+        return out
+
     def media_exists(self, media_id):
         try:
             _get_json(self._url(media_id, fields="id"))

@@ -89,6 +89,38 @@ def test_download(monkeypatch):
     assert Api("TOK").download("https://cdn.example/photo.jpg") == b"\xff\xd8\xff\xe0JFIF"
 
 
+def test_fetch_media_since_pages_back_until_the_date(monkeypatch):
+    pages = [
+        {"data": [{"id": "1", "timestamp": "2026-11-06T09:00:00+0000"},
+                  {"id": "2", "timestamp": "2026-10-20T09:00:00+0000"}],
+         "paging": {"cursors": {"after": "C1"}, "next": "https://graph.instagram.com/next1"}},
+        {"data": [{"id": "3", "timestamp": "2026-08-01T09:00:00+0000"},
+                  {"id": "4", "timestamp": "2026-04-01T09:00:00+0000"}],
+         "paging": {"cursors": {"after": "C2"}, "next": "https://graph.instagram.com/next2"}},
+        {"data": [{"id": "5", "timestamp": "2026-03-01T09:00:00+0000"}], "paging": {}},
+    ]
+    calls = []
+
+    def urlopen(url, timeout=None):
+        calls.append(url)
+        return FakeResponse(jbody(pages[len(calls) - 1]))
+
+    monkeypatch.setattr(api, "urlopen", urlopen)
+    since = datetime.datetime(2026, 5, 7, tzinfo=datetime.timezone.utc)
+    got = Api("TOK").fetch_media_since(since)
+    assert [m["id"] for m in got] == ["1", "2", "3"]
+    assert len(calls) == 2                       # stopped at the first post older than the date
+    assert "after=C1" in calls[1] and "limit=50" in calls[0]
+
+
+def test_fetch_media_since_stops_at_the_last_page(monkeypatch):
+    calls = fake(monkeypatch, body=jbody({"data": [{"id": "1", "timestamp": "2026-11-06T09:00:00+0000"}],
+                                          "paging": {}}))
+    since = datetime.datetime(2026, 5, 7, tzinfo=datetime.timezone.utc)
+    assert [m["id"] for m in Api("TOK").fetch_media_since(since)] == ["1"]
+    assert len(calls) == 1
+
+
 def test_parse_timestamp():
     assert parse_timestamp("2026-11-06T18:21:05+0000") == datetime.datetime(
         2026, 11, 6, 18, 21, 5, tzinfo=datetime.timezone.utc)
