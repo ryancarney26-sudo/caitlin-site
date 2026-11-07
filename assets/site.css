@@ -364,3 +364,16 @@ footer ul { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; fle
 .brush3d svg.sil { transform: translate(14px, 10px); filter: blur(6px); opacity: 0.5; }
 .brush3d svg.art { filter: drop-shadow(0 3px 3px rgba(0,0,0,0.45)); }
 @media (prefers-reduced-motion: reduce) { .brush3d { display: none; } }
+/* Wet paint under the stroke that dries once the brush has passed; the name lights up as it lands; flecks fly off as it lifts */
+@media (prefers-reduced-motion: no-preference) {
+  .hero .stencil-line > path.wet { stroke-width: 12px; opacity: 0.32; filter: blur(3px); animation: draw 1.6s ease-out 1.1s forwards, dry 1.4s ease-out 2.8s forwards; }
+  .hero h1.lit { animation: inkglow 1.6s ease-out forwards; }
+}
+@media (prefers-reduced-motion: reduce) { .hero .stencil-line > path.wet { display: none; } }
+@keyframes dry { to { opacity: 0; stroke-width: 5px; } }
+@keyframes inkglow {
+  0% { text-shadow: 0 0 60px rgba(154,127,209,0.25), 0 2px 30px rgba(0,0,0,0.7); }
+  25% { text-shadow: 0 0 34px rgba(154,127,209,0.75), 0 0 90px rgba(154,127,209,0.45), 0 2px 30px rgba(0,0,0,0.7); }
+  100% { text-shadow: 0 0 60px rgba(154,127,209,0.25), 0 2px 30px rgba(0,0,0,0.7); }
+}
+.fleck { position: absolute; border-radius: 50%; background: var(--violet); pointer-events: none; z-index: 3; opacity: 0; box-shadow: 0 0 6px rgba(154,127,209,0.8); }
