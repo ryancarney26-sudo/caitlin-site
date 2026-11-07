@@ -12,6 +12,12 @@
   if (hasGsap) { gsap.registerPlugin(ScrollTrigger); }
   window.CCT = window.CCT || {};
   window.CCT.lite = lite;
+  // The 3D library is only for the full version; start fetching it now so the brush is ready sooner
+  if (home && !lite && !reduce) {
+    var pre = document.createElement('link');
+    pre.rel = 'modulepreload'; pre.href = '/assets/vendor/three.module.min.js';
+    document.head.appendChild(pre);
+  }
 
   /* 1. Smooth scrolling */
   var lenis = null;

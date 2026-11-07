@@ -2,24 +2,25 @@
    page itself as the floor: the brush flies in from in front of the page, lands on the line under
    her name, paints it in step with the stroke, lifts away, then comes to rest beside the line and
    turns to follow the pointer. Its shadow falls on the page through a shadow-only plane.
-   If WebGL is missing, or motion is reduced, the flat brush in site.js runs instead. */
-import * as THREE from '/assets/vendor/three.module.min.js';
-
+   If WebGL is missing, motion is reduced, or this is a phone (which should not download a 690 KB
+   library for one brush), the flat brush in site.js runs instead, and the library is never fetched. */
 const CCT = window.CCT || (window.CCT = {});
 const canvas = document.getElementById('brush-gl');
 const ink = document.getElementById('stencil-path');
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-function fallback() { if (CCT.startFlatBrush) { CCT.startFlatBrush(); } }
+function fallback() { if (canvas) { canvas.style.display = 'none'; } if (CCT.startFlatBrush) { CCT.startFlatBrush(); } }
 
-if (!canvas || !ink || reduce) {
+if (!canvas || !ink || reduce || CCT.lite) {
   fallback();
 } else {
-  try { run(); } catch (e) { if (canvas) { canvas.style.display = 'none'; } fallback(); }
+  import('/assets/vendor/three.module.min.js')
+    .then((THREE) => { try { run(THREE); } catch (e) { fallback(); } })
+    .catch(() => fallback());
 }
 
-function run() {
+function run(THREE) {
   const hero = canvas.parentElement;
   const lineSvg = ink.ownerSVGElement;
   // Phones and touch screens get the light version: smaller shadow, no smoothing, and the scene

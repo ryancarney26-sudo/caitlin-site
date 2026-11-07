@@ -294,7 +294,7 @@ def build():
                 .replace("{{cur_work}}", "")
                 .replace("{{cur_prices}}", ' aria-current="page"' if path == "/prices/" else "")
                 .replace("{{cur_about}}", ' aria-current="page"' if path == "/about/" else "")
-                .replace("{{home_scripts}}", '  <link rel="modulepreload" href="/assets/vendor/three.module.min.js">\n  <script type="module" src="/assets/brush3d.js"></script>' if home else "")
+                .replace("{{home_scripts}}", '  <script type="module" src="/assets/brush3d.js"></script>' if home else "")
                 .replace("{{body}}", body.rstrip())
                 .replace("{{strip}}", "" if home else strip(path)))
 
