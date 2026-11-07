@@ -23,10 +23,10 @@ function run() {
   const hero = canvas.parentElement;
   const lineSvg = ink.ownerSVGElement;
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
@@ -45,8 +45,8 @@ function run() {
   const key = new THREE.DirectionalLight(0xfff1dc, 2.8);
   key.position.set(-500, 700, 900);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.radius = 6;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.radius = 4;
   key.shadow.bias = -0.0005;
   scene.add(key);
   scene.add(key.target);
@@ -117,9 +117,21 @@ function run() {
   const easeOut = bez(0, 0, 0.58, 1), swoop = bez(0.2, 0.8, 0.2, 1), easeInOut = bez(0.45, 0, 0.55, 1), easeIn = bez(0.4, 0, 0.9, 0.5);
   const lerp = (a, b, t) => a + (b - a) * t;
 
-  // The choreography, in seconds from the moment the stroke's own clock started
-  const t0 = (CCT.strokeStart ? CCT.strokeStart() : 0) / 1000;
-  const clockStart = performance.now() / 1000 - t0;
+  // One clock for everything. It starts the moment this script is ready, and the line follows the
+  // brush: the stylesheet's own stroke animation is switched off and the dash offset is set by hand
+  // every frame, so the two can never drift apart however long the library took to arrive.
+  const DASH = 598;
+  const wet = lineSvg.querySelector('path.wet');
+  [ink, wet].forEach(p => { if (p) { p.style.animation = 'none'; p.style.strokeDashoffset = DASH; } });
+  const t0 = 0;
+  const clockStart = performance.now() / 1000;
+  if (CCT.lightName) { CCT.lightName(0); }
+  let strokeDone = false;
+  const setStroke = (u) => {
+    const off = (DASH * (1 - u)).toFixed(1);
+    ink.style.strokeDashoffset = off;
+    if (wet) { wet.style.strokeDashoffset = off; }
+  };
   const REST = { x: 0, y: 0 };
   const base = { rx: 0.55, ry: 0, rz: -0.5 };
   let pointer = { x: 0, y: 0, has: false };
@@ -156,7 +168,15 @@ function run() {
       r.set(base.rx - wob * 0.6, base.ry, base.rz + wob);
       brush.scale.setScalar(k);
       setOpacity(1);
+      setStroke(u);
       return;
+    }
+    if (!strokeDone) { strokeDone = true; setStroke(1); }
+    // The wet paint dries once the brush has passed
+    if (wet && t < 4.3) {
+      const v = Math.max(0, Math.min(1, (t - 2.8) / 1.4));
+      wet.style.opacity = (0.32 * (1 - easeOut(v))).toFixed(3);
+      wet.style.strokeWidth = (12 - 7 * v).toFixed(1) + 'px';
     }
     if (t < 3.45) {
       phase = 'lift';
@@ -169,7 +189,7 @@ function run() {
         if (host) {
           const hr2 = host.getBoundingClientRect(), hh = hero.getBoundingClientRect();
           const lr = lineSvg.getBoundingClientRect();
-          CCT.flecks(host, lr.left - hr2.left + 598 * s, lr.top - hr2.top + (lr.height - 18 * s) / 2 + 8 * s, (t0 + 2.68) * 1000);
+          CCT.flecks(host, lr.left - hr2.left + 598 * s, lr.top - hr2.top + (lr.height - 18 * s) / 2 + 8 * s, 2680);
         }
       }
       return;
@@ -213,12 +233,15 @@ function run() {
   if ('IntersectionObserver' in window) {
     new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) { requestAnimationFrame(frame); } }, { threshold: 0 }).observe(hero);
   }
+  // At rest it only needs half the frames; while it moves it gets them all
   let last = 0;
   function frame(now) {
     if (!visible) { return; }
+    requestAnimationFrame(frame);
+    if (phase === 'rest' && now - last < 30) { return; }
+    last = now;
     update(now);
     renderer.render(scene, camera);
-    requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 

@@ -51,15 +51,15 @@
         scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
     });
     if (kinds.length) {
-      gsap.from(kinds, { y: 90, rotationY: 38, rotationX: 10, opacity: 0, transformPerspective: 900, transformOrigin: '50% 100%',
-        stagger: 0.12, duration: 1.3, ease: 'power3.out',
+      gsap.from(kinds, { y: 140, z: -300, rotationY: 70, rotationX: 18, opacity: 0, transformPerspective: 900, transformOrigin: '50% 100%',
+        stagger: 0.14, duration: 1.5, ease: 'power3.out',
         scrollTrigger: { trigger: '.kinds', start: 'top 82%', once: true } });
     }
     document.querySelectorAll('.gallery').forEach(function (g) {
       var figs = g.querySelectorAll('figure');
       if (!figs.length) { return; }
-      gsap.from(figs, { y: 70, rotationX: 22, opacity: 0, transformPerspective: 800, transformOrigin: '50% 100%',
-        stagger: { each: 0.07 }, duration: 1.1, ease: 'power3.out',
+      gsap.from(figs, { y: 120, z: -200, rotationX: 45, opacity: 0, transformPerspective: 800, transformOrigin: '50% 100%',
+        stagger: { each: 0.08 }, duration: 1.3, ease: 'power3.out',
         scrollTrigger: { trigger: g, start: 'top 85%', once: true } });
     });
     // Layers at their own depth, the hero handled by hand below
@@ -67,20 +67,20 @@
       if (el.closest('.hero')) { return; }
       var d = parseFloat(el.getAttribute('data-depth')) || 0;
       var box = el.closest('section, .band') || el;
-      gsap.fromTo(el, { y: d * 260 }, { y: -d * 260, ease: 'none',
+      gsap.fromTo(el, { y: d * 420 }, { y: -d * 420, ease: 'none',
         scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: true } });
     });
-    // The hero scrolls away in three layers, the arches turning apart
+    // The hero scrolls away in three layers, the arches swinging apart
     if (home) {
       var heroST = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true };
-      gsap.to('.hero-copy', { y: -90, opacity: 0.15, ease: 'none', scrollTrigger: heroST });
-      gsap.to('.hero-art .big', { y: -140, rotationY: -16, rotationX: 10, transformPerspective: 1100, ease: 'none', scrollTrigger: heroST });
-      gsap.to('.hero-art .small', { y: -260, rotationY: 22, rotationX: 6, transformPerspective: 1100, ease: 'none', scrollTrigger: heroST });
-      gsap.to('.ghost-arch', { y: 160, ease: 'none', scrollTrigger: heroST });
+      gsap.to('.hero-copy', { y: -120, z: -200, opacity: 0.1, transformPerspective: 1000, ease: 'none', scrollTrigger: heroST });
+      gsap.to('.hero-art .big', { y: -200, x: 80, rotationY: -34, rotationX: 16, z: -120, transformPerspective: 1100, ease: 'none', scrollTrigger: heroST });
+      gsap.to('.hero-art .small', { y: -380, x: -60, rotationY: 38, rotationX: 10, z: 60, transformPerspective: 1100, ease: 'none', scrollTrigger: heroST });
+      gsap.to('.ghost-arch', { y: 220, ease: 'none', scrollTrigger: heroST });
       // The faith band: the photo eases in from a zoom, the words read themselves as you scroll
       var band = document.querySelector('.band');
       if (band) {
-        gsap.fromTo('.band img.bg', { scale: 1.18 }, { scale: 1, ease: 'none',
+        gsap.fromTo('.band img.bg', { scale: 1.35 }, { scale: 1, ease: 'none',
           scrollTrigger: { trigger: band, start: 'top bottom', end: 'bottom top', scrub: true } });
         var quote = band.querySelector('blockquote');
         if (quote) {
@@ -145,16 +145,24 @@
   if (fine && !reduce) {
     document.querySelectorAll('.tilt').forEach(function (el) {
       if (hasGsap) {
-        var rx = gsap.quickTo(el, 'rotationX', { duration: 0.5, ease: 'power3' });
-        var ry = gsap.quickTo(el, 'rotationY', { duration: 0.5, ease: 'power3' });
+        // The frame turns towards the hand and lifts; the photo inside slides the other way, so the
+        // frame reads as a window with depth behind it
+        var rx = gsap.quickTo(el, 'rotationX', { duration: 0.6, ease: 'power3' });
+        var ry = gsap.quickTo(el, 'rotationY', { duration: 0.6, ease: 'power3' });
+        var rz = gsap.quickTo(el, 'z', { duration: 0.6, ease: 'power3' });
+        var pic = el.querySelector('img');
+        var ix = pic ? gsap.quickTo(pic, 'x', { duration: 0.7, ease: 'power3' }) : null;
+        var iy = pic ? gsap.quickTo(pic, 'y', { duration: 0.7, ease: 'power3' }) : null;
         gsap.set(el, { transformPerspective: 900 });
+        if (pic) { gsap.set(pic, { scale: 1.08 }); }
         el.addEventListener('mousemove', function (e) {
           var r = el.getBoundingClientRect();
           var px = (e.clientX - r.left) / r.width - 0.5;
           var py = (e.clientY - r.top) / r.height - 0.5;
-          ry(px * 12); rx(-py * 10);
+          ry(px * 22); rx(-py * 18); rz(40);
+          if (ix) { ix(-px * 22); iy(-py * 18); }
         });
-        el.addEventListener('mouseleave', function () { ry(0); rx(0); });
+        el.addEventListener('mouseleave', function () { ry(0); rx(0); rz(0); if (ix) { ix(0); iy(0); } });
       } else {
         el.addEventListener('mousemove', function (e) {
           var r = el.getBoundingClientRect();

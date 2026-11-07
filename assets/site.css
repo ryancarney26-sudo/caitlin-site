@@ -49,8 +49,7 @@ body {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0035' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.62 0 0 0 0 0.5 0 0 0 0 0.85 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
   background-size: 900px 900px;
-  opacity: 0.16;
-  mix-blend-mode: screen;
+  opacity: 0.13;
 }
 .lamp {
   position: fixed; left: 0; top: 0; width: 90vmax; height: 90vmax; z-index: 0; pointer-events: none;
@@ -64,7 +63,7 @@ body::before {
   background: radial-gradient(ellipse at 50% 42%, transparent 50%, rgba(0,0,0,0.6) 100%);
 }
 body::after {
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0.08; mix-blend-mode: screen;
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0.06;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 main, header, footer, .strip, .draft-banner, .ticker, .band { position: relative; z-index: 1; }
@@ -85,7 +84,7 @@ a:hover { color: var(--bone); }
   padding: 0.9rem var(--side);
   transition: background 0.4s, box-shadow 0.4s;
 }
-.bar.stuck { background: rgba(12,10,15,0.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+.bar.stuck { background: rgba(12,10,15,0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
 .bar .left { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
 .bar .brand {
   font-family: var(--display); font-weight: 700; font-size: 1.6rem; line-height: 1;
