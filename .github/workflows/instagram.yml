@@ -1,0 +1,67 @@
+# The robot: every hour, Caitlin's new Instagram photo posts that carry a usable caption line
+# go onto the site. See README.md, "New photos from Instagram".
+name: Instagram photos
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only report what would change. Change nothing."
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -r _src/instagram/requirements.txt
+
+      - name: Look at Instagram
+        id: sync
+        env:
+          IG_TOKEN_KEY: ${{ secrets.IG_TOKEN_KEY }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_APP_PASSWORD: ${{ secrets.MAIL_APP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python -I _src/instagram/sync.py ${{ inputs.dry_run == true && '--dry-run' || '' }}
+
+      - name: Build the site
+        if: steps.sync.outputs.rebuild == 'true'
+        run: python -I _src/make.py --final
+
+      - name: Commit and push
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          MESSAGE: ${{ steps.sync.outputs.message }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "$MESSAGE"
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            sleep 20
+          done
+          echo "Could not push after three attempts"
+          exit 1

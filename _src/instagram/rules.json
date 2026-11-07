@@ -1,0 +1,43 @@
+{
+  "home_count": 12,
+  "min_words": 3,
+  "max_words": 20,
+  "places": [
+    "arm", "forearm", "upper arm", "inner arm", "outer arm", "inner forearm", "outer forearm",
+    "bicep", "biceps", "tricep", "elbow", "wrist", "hand", "hands", "finger", "fingers",
+    "knuckle", "knuckles", "palm", "shoulder", "shoulders", "shoulder blade", "collarbone",
+    "chest", "sternum", "rib", "ribs", "side", "stomach", "belly", "hip", "back", "lower back",
+    "upper back", "spine", "neck", "nape", "throat", "ear", "behind the ear", "head", "scalp",
+    "thigh", "thighs", "knee", "calf", "shin", "leg", "legs", "ankle", "foot", "feet", "toe",
+    "sleeve", "half sleeve", "full sleeve"
+  ],
+  "ambiguous": ["back", "side", "hand", "hands", "head", "arm", "leg", "legs", "foot", "feet", "ear", "chest"],
+  "qualifiers": [
+    "the", "her", "his", "my", "their", "your", "a", "one", "both", "left", "right",
+    "lower", "upper", "inner", "outer", "whole", "full", "on", "same", "other", "top"
+  ],
+  "reject_phrases": [
+    "on hand", "at hand", "in hand", "out of hand", "hands down", "hands up",
+    "on the side", "side note", "side by side",
+    "back at it", "back in the", "welcome back", "be back", "back to", "back soon", "back again",
+    "back burner", "on the back foot", "off the back", "back of my mind", "my back teeth",
+    "twist my arm", "twisted my arm", "arm in arm",
+    "pull my leg", "pulling my leg", "leg up",
+    "foot in the door", "foot down", "put my foot",
+    "in my head", "on my head", "over my head", "off my head", "top of my head", "out of my head",
+    "my head around", "head over heels", "heads up", "head to toe",
+    "off my chest", "off her chest", "off his chest"
+  ],
+  "banned": [
+    "dm", "dms", "message", "messages", "book", "booking", "bookings", "booked", "link", "bio",
+    "sale", "discount", "discounted", "offer", "offers", "price", "prices", "thank", "thanks",
+    "available", "availability", "enquire", "enquiries", "giveaway", "competition", "deposit",
+    "cancellation", "cancellations", "slot", "slots"
+  ],
+  "pages": {
+    "10-portrait-tattoos.html": ["portrait", "portraits", "realism", "pet", "character"],
+    "12-script-tattoos.html": ["script", "lettering", "handwriting", "quote", "words", "name", "names", "writing", "font"],
+    "13-christian-tattoos.html": ["cross", "crucifix", "christian", "jesus", "christ", "lamb of god", "son of god", "mother of god", "mary", "madonna", "angel", "archangel", "saint", "rosary", "praying hands", "prayer", "psalm", "scripture", "bible", "verse", "sacred heart", "church", "faith"],
+    "15-walk-in-tattoos.html": ["small", "flash", "walk-in", "walk in", "tiny", "little", "mini"]
+  }
+}
