@@ -100,7 +100,8 @@ class Pages:
 
     def get(self, name):
         if name not in self.text:
-            raw = (self.dir / name).read_text(encoding="utf-8", newline="")
+            with open(self.dir / name, encoding="utf-8", newline="") as f:   # read_text(newline=) needs 3.13
+                raw = f.read()
             self.crlf[name] = "\r\n" in raw
             self.text[name] = raw.replace("\r\n", "\n")
         return self.text[name]
