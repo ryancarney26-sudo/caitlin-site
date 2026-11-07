@@ -96,7 +96,22 @@ The robot's files are in `_src/instagram/`:
   photos "Recent work" keeps. Edit it and push; no code change needed.
 - `state.json` remembers which posts are on the site. `token.enc` is the Instagram key,
   encrypted. Both are committed by the robot. Nothing secret is in the clear.
+- `export.py` is the one-off export of older posts, for a backfill (see below).
 - `tests/` are the tests. Run them with `python -m pytest _src/instagram/tests -q`.
+
+### All my tattoos, and the backfill of older posts
+
+The page `/tattoos/` (`_src/pages/17-tattoos.html`) shows every photo on the site, newest first.
+The robot adds each new photo there too, as well as to "Recent work" and its subject pages.
+
+On 7 November 2026 her Instagram posts from 7 May to 5 November were backfilled. The
+**Instagram export** workflow (Actions, Run workflow, a start date) downloaded them for a day.
+Claude looked at each photo, decided whether it was a finished tattoo, wrote its caption and picked
+its subject pages. A second Claude checked every one, and the photos were compared by eye with
+those already on the site, so nothing appears twice. Older photos went on their subject pages and
+on "All my tattoos", not on the home page. Every post is remembered in `state.json`, so the robot
+never adds one again. The robot doesn't follow caption edits on posts from before 6 November, so to
+change one of those captions, edit its line in the page body in `_src/pages/` and rebuild.
 
 ### Secrets (repository settings, Actions)
 

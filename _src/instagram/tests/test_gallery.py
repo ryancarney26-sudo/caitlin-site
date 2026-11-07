@@ -61,9 +61,10 @@ def test_add_keeps_everything_outside_gallery(repo_copy):
 
 def test_add_to_subject_page_never_trims(repo_copy):
     text = (repo_copy / "_src" / "pages" / "10-portrait-tattoos.html").read_text(encoding="utf-8")
-    assert len(gallery_lines(text, "photos-h")) == 7
+    before = len(gallery_lines(text, "photos-h"))
+    assert before >= 7
     out = add_photo(text, "photos-h", NEW, "Portrait, forearm", keep=None)
-    assert len(gallery_lines(out, "photos-h")) == 8
+    assert len(gallery_lines(out, "photos-h")) == before + 1
 
 
 def test_add_is_idempotent(repo_copy):
