@@ -256,10 +256,21 @@ blockquote cite { display: block; margin-top: 1rem; font-family: var(--body); fo
   box-shadow: 0 20px 40px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(154,127,209,0.35);
   transition: transform 0.5s ease, box-shadow 0.5s ease;
 }
-.gallery figure:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0,0,0,0.7), 0 0 30px rgba(154,127,209,0.25), inset 0 0 0 1px rgba(233,226,211,0.5); }
+.gallery figure:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0,0,0,0.7), 0 0 30px rgba(154,127,209,0.25); }
+/* The edge of each tile fades into the wall, with a hairline sitting on top of the photo */
+.gallery figure::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(154,127,209,0.45);
+  background:
+    linear-gradient(to right, rgba(12,10,15,0.85), transparent 18%, transparent 82%, rgba(12,10,15,0.85)),
+    linear-gradient(to bottom, rgba(12,10,15,0.85), transparent 18%, transparent 82%, rgba(12,10,15,0.85)),
+    radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(12,10,15,0.5) 100%);
+  transition: opacity 0.6s ease, box-shadow 0.6s ease;
+}
+.gallery figure:hover::after { opacity: 0.55; box-shadow: inset 0 0 0 1px rgba(233,226,211,0.6); }
 .gallery img { display: block; width: 100%; height: 100%; aspect-ratio: 4 / 5; object-fit: cover; transition: transform 0.9s ease; }
 .gallery figure:hover img { transform: scale(1.05); }
-.gallery figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.5rem 0.9rem 0.8rem; font-size: 0.95rem; color: var(--bone); background: linear-gradient(180deg, transparent, rgba(12,10,15,0.92)); }
+.gallery figcaption { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; padding: 2.5rem 0.9rem 0.8rem; font-size: 0.95rem; color: var(--bone); background: linear-gradient(180deg, transparent, rgba(12,10,15,0.92)); }
 @media (min-width: 48rem) { .gallery .feature { grid-column: span 2; grid-row: span 2; } .gallery .feature img { aspect-ratio: auto; } }
 .gallery .ph { aspect-ratio: 4 / 5; border: 2px dashed #c9a800; background: #fff8cc; color: #5a4a00; font-size: 0.9rem; padding: 0.75rem; display: flex; align-items: flex-end; word-break: break-word; }
 .portrait { max-width: 22rem; margin: 0 0 1.5rem; }
