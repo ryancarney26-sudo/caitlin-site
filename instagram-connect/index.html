@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Connecting Instagram | Caitlin Carney Tattoo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+  <link rel="stylesheet" href="/assets/site.css">
+  <style>
+    .connect { min-height: 100vh; display: grid; place-items: center; padding: 2rem 1rem; box-sizing: border-box; }
+    .connect .card { max-width: 32rem; width: 100%; text-align: center; }
+    .connect h1 { font-family: var(--display, "Grenze Gotisch", serif); font-size: 2.6rem; line-height: 1; margin: 0 0 1rem; }
+    .connect p { font-family: var(--body, "Atkinson Hyperlegible", sans-serif); font-size: 1.15rem; line-height: 1.6; }
+    .connect .code { display: block; font-family: ui-monospace, Consolas, monospace; font-size: 1.1rem; line-height: 1.5;
+      word-break: break-all; padding: 1rem 1.2rem; margin: 1.2rem 0; border: 1px solid var(--rule, #4a3f5c);
+      border-radius: 10px; background: rgba(0, 0, 0, 0.35); user-select: all; }
+    .connect .btn { cursor: pointer; font: inherit; }
+    .connect [hidden] { display: none !important; }
+  </style>
+</head>
+<body class="inner">
+  <main class="connect">
+    <div class="card">
+      <section id="ok" hidden>
+        <h1>Nearly there</h1>
+        <p>Instagram has given permission. <b>Send this code to Ryan.</b> It works once and lasts an hour.</p>
+        <code class="code" id="code"></code>
+        <button class="btn primary" id="copy" type="button">Copy the code</button>
+      </section>
+      <section id="declined" hidden>
+        <h1>No permission</h1>
+        <p>Instagram did not give permission. Try the link again, and tap allow.</p>
+      </section>
+      <section id="nothing" hidden>
+        <h1>Nothing to see here</h1>
+        <p>This page only has a job right after Instagram sends you to it.</p>
+      </section>
+    </div>
+  </main>
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      var code = (q.get("code") || "").replace(/#_$/, "").trim();
+      var error = q.get("error") || q.get("error_reason");
+      function show(id) { document.getElementById(id).hidden = false; }
+      if (code) {
+        document.getElementById("code").textContent = code;
+        show("ok");
+        var btn = document.getElementById("copy");
+        btn.addEventListener("click", function () {
+          function done() { btn.textContent = "Copied. Now send it to Ryan."; }
+          function byHand() { selectCode(); btn.textContent = "Press and hold the code, then copy it."; }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(done, byHand);
+          } else {
+            byHand();
+          }
+        });
+      } else if (error) {
+        show("declined");
+      } else {
+        show("nothing");
+      }
+      function selectCode() {
+        var range = document.createRange();
+        range.selectNodeContents(document.getElementById("code"));
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    })();
+  </script>
+</body>
+</html>
