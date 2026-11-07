@@ -1,7 +1,14 @@
 # Caitlin Carney Tattoo
 
 Static site. The files in this folder are the whole site: plain HTML, one shared stylesheet
-in `assets/site.css`, no JavaScript.
+in `assets/site.css`, and one small inline script in every page (from `../site-src/template.html`)
+that does the motion: sections rising into view, the glow that follows the pointer, the drifting
+dust, the tilting frames. All of it switches off when a visitor's device asks for reduced motion.
+
+Design, since 7 November 2026: "night studio". Dark pages with a violet plaster texture, bone-white
+type, Grenze Gotisch for headings, Atkinson Hyperlegible for reading, and photos set in pointed
+arches. Page bodies write a photo-in-an-arch as `<!--arch file.jpg | alt | classes | attributes-->`
+and a gallery tile as `<!--photo file.jpg | alt | classes-->`; `make.py` turns both into markup.
 
 ## Branches
 

@@ -6,7 +6,8 @@
   <title>Tattoo prices and booking | Caitlin Carney Tattoo, Preston</title>
   <meta name="description" content="What a tattoo costs with Caitlin Carney at True Colours, Preston: £70 minimum, £210 for a half day, £400 for a full day, a £40 deposit, and how booking works from first message to finished tattoo.">
   <link rel="canonical" href="https://caitlincarneytattoo.co.uk/prices/">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Cpath d='M4 17 C 10 13, 16 21, 22 17 S 27 15, 29 17' fill='none' stroke='%235a3a8c' stroke-width='3' stroke-linecap='round' stroke-dasharray='5 3'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#0c0a0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230c0a0f'/%3E%3Cpath d='M8 28 V13 C8 7 13 4 16 3 C19 4 24 7 24 13 V28' fill='none' stroke='%239a7fd1' stroke-width='2.5'/%3E%3C/svg%3E">
   <meta property="og:title" content="Tattoo prices and booking | Caitlin Carney Tattoo, Preston">
   <meta property="og:description" content="What a tattoo costs with Caitlin Carney at True Colours, Preston: £70 minimum, £210 for a half day, £400 for a full day, a £40 deposit, and how booking works from first message to finished tattoo.">
   <meta property="og:url" content="https://caitlincarneytattoo.co.uk/prices/">
@@ -14,7 +15,7 @@
   <meta property="og:locale" content="en_GB">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Libre+Franklin:ital,wght@0,400;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@700;900&family=Grenze:ital,wght@0,500;1,500&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
   <link rel="stylesheet" href="/assets/site.css">
   <script type="application/ld+json">
 {
@@ -113,9 +114,18 @@
   </script>
 </head>
 <body class="inner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <clipPath id="arch" clipPathUnits="objectBoundingBox">
+        <path d="M0,1 L0,0.34 C0,0.15 0.27,0.035 0.5,0 C0.73,0.035 1,0.15 1,0.34 L1,1 Z"/>
+      </clipPath>
+    </defs>
+  </svg>
+  <div class="wall" aria-hidden="true"></div>
+  <div class="lamp" id="lamp" aria-hidden="true"></div>
   <a class="skip" href="#main">Skip to the content</a>
 
-  <header class="bar">
+  <header class="bar" id="bar">
     <div class="left"><a class="brand" href="/">Caitlin Carney Tattoo</a><span class="where">True Colours, Preston</span></div>
     <nav aria-label="Pages">
       <a href="/#work">Work</a>
@@ -134,7 +144,7 @@
     <p class="lead">Here's how I price work, so there are no surprises. Every quote is agreed before you pay anything.</p>
   </div>
 
-  <section aria-labelledby="prices-h">
+  <section class="reveal" aria-labelledby="prices-h">
     <h2 id="prices-h">Prices</h2>
     <table class="price-table">
       <tbody>
@@ -155,7 +165,7 @@
     </div>
   </section>
 
-  <section id="book" aria-labelledby="book-h">
+  <section class="reveal" id="book" aria-labelledby="book-h">
     <h2 id="book-h">How booking works</h2>
     <ol class="steps">
       <li><div><b>Send me the idea.</b> A few lines, where on the body, rough size, and any reference pictures. Instagram messages or the studio's form both work.</div></li>
@@ -169,7 +179,7 @@
     </div>
   </section>
 
-  <section aria-labelledby="before-h">
+  <section class="reveal" aria-labelledby="before-h">
     <h2 id="before-h">Before your appointment</h2>
     <div class="prose">
       <ul>
@@ -203,5 +213,80 @@
       <li><a href="https://www.instagram.com/caitlincarneytattoo/">Instagram</a></li>
     </ul>
   </footer>
+
+  <script>
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    // Sections rise into view
+    var items = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('in'); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      items.forEach(function (el) { io.observe(el); });
+    }
+
+    // Dust: a few dozen slow specks wherever a .dust box sits
+    document.querySelectorAll('.dust').forEach(function (box) {
+      for (var i = 0; i < 36; i++) {
+        var s = document.createElement('i');
+        s.style.left = (Math.random() * 100) + '%';
+        s.style.top = (40 + Math.random() * 60) + '%';
+        s.style.setProperty('--t', (12 + Math.random() * 16) + 's');
+        s.style.setProperty('--d', (-Math.random() * 20) + 's');
+        s.style.setProperty('--x', ((Math.random() - 0.5) * 120) + 'px');
+        s.style.setProperty('--o', (0.25 + Math.random() * 0.5).toFixed(2));
+        var size = (1.5 + Math.random() * 2.5).toFixed(1);
+        s.style.width = size + 'px'; s.style.height = size + 'px';
+        box.appendChild(s);
+      }
+    });
+
+    // Header turns glassy once scrolled; layers with a depth move at their own speed
+    var bar = document.getElementById('bar');
+    var layers = Array.prototype.slice.call(document.querySelectorAll('[data-depth]'));
+    var ticking = false;
+    function frame() {
+      ticking = false;
+      var y = window.scrollY || 0;
+      if (bar) { bar.classList.toggle('stuck', y > 40); }
+      if (reduce) { return; }
+      var vh = window.innerHeight;
+      layers.forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        var centre = r.top + r.height / 2 - vh / 2;
+        var d = parseFloat(el.getAttribute('data-depth')) || 0;
+        el.style.transform = 'translate3d(0,' + (-centre * d).toFixed(1) + 'px,0)';
+      });
+    }
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }, { passive: true });
+    window.addEventListener('resize', frame);
+    frame();
+
+    // The lamp follows the pointer; frames tilt under it
+    var lamp = document.getElementById('lamp');
+    if (fine && !reduce) {
+      document.addEventListener('mousemove', function (e) {
+        lamp.style.transform = 'translate(' + (e.clientX - window.innerWidth * 0.45) + 'px,' + (e.clientY - window.innerHeight * 0.45) + 'px)';
+      });
+      document.querySelectorAll('.tilt').forEach(function (el) {
+        el.addEventListener('mousemove', function (e) {
+          var r = el.getBoundingClientRect();
+          var px = (e.clientX - r.left) / r.width - 0.5;
+          var py = (e.clientY - r.top) / r.height - 0.5;
+          el.style.setProperty('--ry', (px * 10).toFixed(2) + 'deg');
+          el.style.setProperty('--rx', (-py * 8).toFixed(2) + 'deg');
+        });
+        el.addEventListener('mouseleave', function () { el.style.setProperty('--ry', '0deg'); el.style.setProperty('--rx', '0deg'); });
+      });
+    } else if (lamp) {
+      lamp.style.transform = 'translate(' + (window.innerWidth * 0.3) + 'px,' + (window.innerHeight * 0.1) + 'px)';
+    }
+  })();
+  </script>
 </body>
 </html>

@@ -6,7 +6,8 @@
   <title>Caitlin Carney Tattoo | Tattoo artist in Preston, Lancashire</title>
   <meta name="description" content="Caitlin Carney is a tattoo artist at True Colours in Preston, Lancashire. Portraits of people, pets and film and TV characters, Christian pieces, script and memorial work, in black and grey or colour. Walk-ins Tuesday to Thursday.">
   <link rel="canonical" href="https://caitlincarneytattoo.co.uk/">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Cpath d='M4 17 C 10 13, 16 21, 22 17 S 27 15, 29 17' fill='none' stroke='%235a3a8c' stroke-width='3' stroke-linecap='round' stroke-dasharray='5 3'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#0c0a0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230c0a0f'/%3E%3Cpath d='M8 28 V13 C8 7 13 4 16 3 C19 4 24 7 24 13 V28' fill='none' stroke='%239a7fd1' stroke-width='2.5'/%3E%3C/svg%3E">
   <meta property="og:title" content="Caitlin Carney Tattoo | Tattoo artist in Preston, Lancashire">
   <meta property="og:description" content="Caitlin Carney is a tattoo artist at True Colours in Preston, Lancashire. Portraits of people, pets and film and TV characters, Christian pieces, script and memorial work, in black and grey or colour. Walk-ins Tuesday to Thursday.">
   <meta property="og:url" content="https://caitlincarneytattoo.co.uk/">
@@ -14,7 +15,7 @@
   <meta property="og:locale" content="en_GB">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Libre+Franklin:ital,wght@0,400;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@700;900&family=Grenze:ital,wght@0,500;1,500&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
   <link rel="stylesheet" href="/assets/site.css">
   <script type="application/ld+json">
 {
@@ -96,9 +97,18 @@
   </script>
 </head>
 <body class="home">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <clipPath id="arch" clipPathUnits="objectBoundingBox">
+        <path d="M0,1 L0,0.34 C0,0.15 0.27,0.035 0.5,0 C0.73,0.035 1,0.15 1,0.34 L1,1 Z"/>
+      </clipPath>
+    </defs>
+  </svg>
+  <div class="wall" aria-hidden="true"></div>
+  <div class="lamp" id="lamp" aria-hidden="true"></div>
   <a class="skip" href="#main">Skip to the content</a>
 
-  <header class="bar">
+  <header class="bar" id="bar">
     <div class="left"><span class="where">True Colours, 14 Guildhall Street, Preston</span></div>
     <nav aria-label="Pages">
       <a href="/#work">Work</a>
@@ -110,7 +120,9 @@
 
   <main id="main">
   <div class="hero">
-    <div class="hero-copy">
+    <svg class="ghost-arch" data-depth="-0.08" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true"><path d="M0,150 L0,51 C0,22.5 27,5.25 50,0 C73,5.25 100,22.5 100,51 L100,150"/></svg>
+    <div class="dust" aria-hidden="true"></div>
+    <div class="hero-copy" data-depth="0.04">
       <h1>Caitlin Carney Tattoo</h1>
       <svg class="stencil-line" viewBox="0 0 600 18" aria-hidden="true" preserveAspectRatio="none">
         <path d="M2 9 C 80 4, 140 14, 220 9 S 360 3, 440 10 S 560 14, 598 8"/>
@@ -122,31 +134,41 @@
       </div>
     </div>
     <div class="hero-art">
-      <img src="/images/character-portrait-tattoo-preston-02.jpg" alt="Portrait tattoo of the Bride of Frankenstein, black and grey, on the leg" width="800" height="1000">
-      <img src="/images/christian-tattoo-preston-01.jpg" alt="Saint Michael the Archangel tattoo, black and grey, full forearm" width="800" height="1000">
+      <figure class="arch big tilt" data-depth="0.10"><img src="/images/christian-tattoo-preston-01.jpg" alt="Saint Michael the Archangel tattoo, black and grey, full forearm" width="800" height="1200"><div class="recess"></div><svg class="line" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true"><path class="outer" d="M0,150 L0,51 C0,22.5 27,5.25 50,0 C73,5.25 100,22.5 100,51 L100,150"/><path class="inner" d="M3,150 L3,52 C3,26 28,9 50,4 C72,9 97,26 97,52 L97,150"/><path class="light" d="M0,150 L0,51 C0,22.5 27,5.25 50,0"/></svg></figure>
+      <figure class="arch small tilt" data-depth="0.18"><img src="/images/character-portrait-tattoo-preston-02.jpg" alt="Portrait tattoo of the Bride of Frankenstein, black and grey, on the leg" width="800" height="1200"><div class="recess"></div><svg class="line" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true"><path class="outer" d="M0,150 L0,51 C0,22.5 27,5.25 50,0 C73,5.25 100,22.5 100,51 L100,150"/><path class="inner" d="M3,150 L3,52 C3,26 28,9 50,4 C72,9 97,26 97,52 L97,150"/><path class="light" d="M0,150 L0,51 C0,22.5 27,5.25 50,0"/></svg></figure>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div>
+      <span>Portraits</span><span>Christian pieces</span><span>Script and lettering</span><span>Film and TV characters</span><span>Walk-ins Tuesday to Thursday</span><span>Preston, Lancashire</span><span>Black and grey, or colour</span><span>True Colours Tattoo</span>
+      <span>Portraits</span><span>Christian pieces</span><span>Script and lettering</span><span>Film and TV characters</span><span>Walk-ins Tuesday to Thursday</span><span>Preston, Lancashire</span><span>Black and grey, or colour</span><span>True Colours Tattoo</span>
     </div>
   </div>
 
   <section id="work" aria-labelledby="work-h">
-    <h2 id="work-h">What I tattoo</h2>
-    <p class="prose">Most of my work falls into four kinds. Each has its own page with photos, prices and the questions people ask me.</p>
-    <div class="cards">
-      <a class="card" href="/portrait-tattoos/">
+    <h2 id="work-h" class="sr-only">Four kinds of work</h2>
+    <div class="kinds">
+      <a class="kind reveal" href="/portrait-tattoos/">
+        <figure class="arch tilt"><img src="/images/character-portrait-tattoo-preston-01.jpg" alt="Portrait tattoo of Frankenstein's monster, black and grey" width="800" height="1200"><div class="recess"></div><svg class="line" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true"><path class="outer" d="M0,150 L0,51 C0,22.5 27,5.25 50,0 C73,5.25 100,22.5 100,51 L100,150"/><path class="inner" d="M3,150 L3,52 C3,26 28,9 50,4 C72,9 97,26 97,52 L97,150"/><path class="light" d="M0,150 L0,51 C0,22.5 27,5.25 50,0"/></svg></figure>
         <h3>Portraits</h3>
         <p>People, pets, characters from films and TV, and memorial portraits of someone you've lost, in black and grey or colour.</p>
         <span class="go">Portrait tattoos</span>
       </a>
-      <a class="card" href="/christian-tattoos/">
+      <a class="kind reveal" href="/christian-tattoos/">
+        <figure class="arch tilt"><img src="/images/christian-tattoo-preston-02.jpg" alt="Mary in prayer beneath a gothic church window, fine line, upper arm" width="800" height="1200"><div class="recess"></div><svg class="line" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true"><path class="outer" d="M0,150 L0,51 C0,22.5 27,5.25 50,0 C73,5.25 100,22.5 100,51 L100,150"/><path class="inner" d="M3,150 L3,52 C3,26 28,9 50,4 C72,9 97,26 97,52 L97,150"/><path class="light" d="M0,150 L0,51 C0,22.5 27,5.25 50,0"/></svg></figure>
         <h3>Christian pieces</h3>
         <p>Crosses, scripture, praying hands, rosaries, angels, and portraits of Jesus and Mary. Faith is a big part of my life.</p>
         <span class="go">Christian tattoos</span>
       </a>
-      <a class="card" href="/script-tattoos/">
+      <a class="kind reveal" href="/script-tattoos/">
+        <figure class="arch tilt"><img src="/images/script-tattoo-preston-02.jpg" alt="Watercolour flowers with the word Resilience in script, on the forearm" width="800" height="1200"><div class="recess"></div><svg class="line" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true"><path class="outer" d="M0,150 L0,51 C0,22.5 27,5.25 50,0 C73,5.25 100,22.5 100,51 L100,150"/><path class="inner" d="M3,150 L3,52 C3,26 28,9 50,4 C72,9 97,26 97,52 L97,150"/><path class="light" d="M0,150 L0,51 C0,22.5 27,5.25 50,0"/></svg></figure>
         <h3>Script and lettering</h3>
         <p>Quotes, verses, poems, song lines and a loved one's handwriting, in clean script that lasts.</p>
         <span class="go">Script tattoos</span>
       </a>
-      <a class="card" href="/walk-in-tattoos/">
+      <a class="kind reveal" href="/walk-in-tattoos/">
+        <figure class="arch tilt"><img src="/images/small-tattoo-preston-01.jpg" alt="Small black and grey butterfly tattoo on the arm" width="800" height="1200"><div class="recess"></div><svg class="line" viewBox="0 0 100 150" preserveAspectRatio="none" aria-hidden="true"><path class="outer" d="M0,150 L0,51 C0,22.5 27,5.25 50,0 C73,5.25 100,22.5 100,51 L100,150"/><path class="inner" d="M3,150 L3,52 C3,26 28,9 50,4 C72,9 97,26 97,52 L97,150"/><path class="light" d="M0,150 L0,51 C0,22.5 27,5.25 50,0"/></svg></figure>
         <h3>Walk-ins and small pieces</h3>
         <p>Flash and small custom pieces, same day when I have a gap, Tuesday to Thursday. Ring first.</p>
         <span class="go">Walk-in tattoos</span>
@@ -154,108 +176,131 @@
     </div>
   </section>
 
-  <section id="recent" aria-labelledby="recent-h">
-    <h2 id="recent-h">Recent work</h2>
-    <p class="prose">A few recent pieces, in black and grey and in colour. There's more on <a href="https://www.instagram.com/caitlincarneytattoo/">Instagram</a>.</p>
+  <div class="band" id="faith">
+    <img class="bg" src="/images/tattoo-preston-moth.jpg" alt="" width="1015" height="1017" data-depth="-0.12">
+    <div class="dust" aria-hidden="true"></div>
+    <div class="band-inner reveal">
+      <blockquote>
+        Faith is a big part of my life. Tattooing Christian pieces means I can commit my work to my faith, and help other Christians get good tattoos from someone who shares their values.
+        <cite>Why I do Christian pieces</cite>
+      </blockquote>
+    </div>
+  </div>
+
+  <section id="recent" class="panel" aria-labelledby="recent-h">
+    <h2 id="recent-h" class="reveal">Recent work</h2>
+    <p class="lead-in reveal">A few recent pieces, in black and grey and in colour. There's more on <a href="https://www.instagram.com/caitlincarneytattoo/">Instagram</a>.</p>
     <div class="gallery">
-      <figure><img src="/images/tattoo-preston-medusa.jpg" alt="Medusa tattoo with snakes and a crescent moon, black and grey, upper arm" loading="lazy"><figcaption>Medusa tattoo with snakes and a crescent moon, black and grey, upper arm</figcaption></figure>
-      <figure><img src="/images/tattoo-preston-robin.jpg" alt="Colour tattoo of a robin and a monarch butterfly on a branch" loading="lazy"><figcaption>Colour tattoo of a robin and a monarch butterfly on a branch</figcaption></figure>
-      <figure><img src="/images/tattoo-preston-moth.jpg" alt="Large moth tattoo in black and grey, upper arm" loading="lazy"><figcaption>Large moth tattoo in black and grey, upper arm</figcaption></figure>
-      <figure><img src="/images/tattoo-preston-snake-lilies.jpg" alt="Snake and lilies tattoo, black and grey, forearm" loading="lazy"><figcaption>Snake and lilies tattoo, black and grey, forearm</figcaption></figure>
-      <figure><img src="/images/tattoo-preston-compass.jpg" alt="Compass tattoo in black and grey, upper arm" loading="lazy"><figcaption>Compass tattoo in black and grey, upper arm</figcaption></figure>
-      <figure><img src="/images/tattoo-preston-hannya-skull.jpg" alt="Skull and Hannya mask tattoo, black and grey, forearm" loading="lazy"><figcaption>Skull and Hannya mask tattoo, black and grey, forearm</figcaption></figure>
-      <figure><img src="/images/tattoo-preston-crow-crown.jpg" alt="Crowned crow tattoo on the back of the neck" loading="lazy"><figcaption>Crowned crow tattoo on the back of the neck</figcaption></figure>
-      <figure><img src="/images/tattoo-preston-buddha-lotus.jpg" alt="Buddha and lotus flowers tattoo, forearm" loading="lazy"><figcaption>Buddha and lotus flowers tattoo, forearm</figcaption></figure>
+      <figure class="reveal tilt feature"><img src="/images/tattoo-preston-medusa.jpg" alt="Medusa tattoo with snakes and a crescent moon, black and grey, upper arm" loading="lazy"><figcaption>Medusa tattoo with snakes and a crescent moon, black and grey, upper arm</figcaption></figure>
+      <figure class="reveal tilt"><img src="/images/tattoo-preston-robin.jpg" alt="Colour tattoo of a robin and a monarch butterfly on a branch" loading="lazy"><figcaption>Colour tattoo of a robin and a monarch butterfly on a branch</figcaption></figure>
+      <figure class="reveal tilt"><img src="/images/tattoo-preston-snake-lilies.jpg" alt="Snake and lilies tattoo, black and grey, forearm" loading="lazy"><figcaption>Snake and lilies tattoo, black and grey, forearm</figcaption></figure>
+      <figure class="reveal tilt"><img src="/images/tattoo-preston-compass.jpg" alt="Compass tattoo in black and grey, upper arm" loading="lazy"><figcaption>Compass tattoo in black and grey, upper arm</figcaption></figure>
+      <figure class="reveal tilt"><img src="/images/tattoo-preston-hannya-skull.jpg" alt="Skull and Hannya mask tattoo, black and grey, forearm" loading="lazy"><figcaption>Skull and Hannya mask tattoo, black and grey, forearm</figcaption></figure>
+      <figure class="reveal tilt"><img src="/images/tattoo-preston-crow-crown.jpg" alt="Crowned crow tattoo on the back of the neck" loading="lazy"><figcaption>Crowned crow tattoo on the back of the neck</figcaption></figure>
+      <figure class="reveal tilt"><img src="/images/tattoo-preston-buddha-lotus.jpg" alt="Buddha and lotus flowers tattoo, forearm" loading="lazy"><figcaption>Buddha and lotus flowers tattoo, forearm</figcaption></figure>
+      <figure class="reveal tilt"><img src="/images/tattoo-preston-classic-car.jpg" alt="Classic car tattoo in black and grey, forearm" loading="lazy"><figcaption>Classic car tattoo in black and grey, forearm</figcaption></figure>
     </div>
   </section>
+
+  <div class="arcade" aria-hidden="true"></div>
 
   <section id="about" aria-labelledby="about-h">
-    <h2 id="about-h">About me</h2>
-    <div class="prose">
-      <p>I'm Caitlin Carney, a tattoo artist at True Colours in Preston. I've always loved drawing portraits more than anything, especially characters from films and TV shows, and that carries straight into my tattooing. And I love anything Christian: faith is a big part of my life.</p>
-      <p>Most of my clients come from Preston and around Lancashire, and a good few travel from across the North West. You'll find me at the studio on Guildhall Street, next to the Guild Hall in the city centre, Monday to Saturday.</p>
-      <p>Before 2026 I tattooed as Caitlin O'Brien, so you may have seen my work under that name.</p>
-      <p class="more"><a href="/about/">More about me</a></p>
+    <div class="reveal">
+      <h2 id="about-h">About me</h2>
+      <div class="prose cap">
+        <p>I'm Caitlin Carney, a tattoo artist at True Colours in Preston. I've always loved drawing portraits more than anything, especially characters from films and TV shows, and that carries straight into my tattooing. And I love anything Christian: faith is a big part of my life.</p>
+        <p>Most of my clients come from Preston and around Lancashire, and a good few travel from across the North West. You'll find me at the studio on Guildhall Street, next to the Guild Hall in the city centre, Monday to Saturday.</p>
+        <p>Before 2026 I tattooed as Caitlin O'Brien, so you may have seen my work under that name.</p>
+        <p class="more"><a href="/about/">More about me</a></p>
+      </div>
     </div>
   </section>
 
-  <section id="book" aria-labelledby="book-h">
-    <h2 id="book-h">Booking</h2>
-    <ol class="steps">
-      <li><div><b>Send me the idea.</b> A few lines, where on the body, rough size, and any reference pictures. Instagram messages or the studio's form both work.</div></li>
-      <li><div><b>I come back with a quote.</b> Usually within a few days. Bigger pieces are priced by the session.</div></li>
-      <li><div><b>A £40 deposit holds your slot.</b> It comes off the final price.</div></li>
-      <li><div><b>We tattoo.</b> I draw the design up before the day, and we make any changes together before the stencil goes on.</div></li>
-    </ol>
-    <div class="actions">
-      <a class="btn primary" href="https://www.truecolourstattoo.co.uk/quotation-booking-request">Send a booking request</a>
-      <a class="btn" href="https://www.instagram.com/caitlincarneytattoo/">Message me on Instagram</a>
+  <section id="book" class="panel" aria-labelledby="book-h">
+    <div class="reveal">
+      <h2 id="book-h">Booking</h2>
+      <ol class="steps">
+        <li><div><b>Send me the idea.</b> A few lines, where on the body, rough size, and any reference pictures. Instagram messages or the studio's form both work.</div></li>
+        <li><div><b>I come back with a quote.</b> Usually within a few days. Bigger pieces are priced by the session.</div></li>
+        <li><div><b>A £40 deposit holds your slot.</b> It comes off the final price.</div></li>
+        <li><div><b>We tattoo.</b> I draw the design up before the day, and we make any changes together before the stencil goes on.</div></li>
+      </ol>
+      <div class="actions">
+        <a class="btn primary" href="https://www.truecolourstattoo.co.uk/quotation-booking-request">Send a booking request</a>
+        <a class="btn" href="https://www.instagram.com/caitlincarneytattoo/">Message me on Instagram</a>
+      </div>
+      <p class="prose" style="margin-top:1.25rem">Walk-ins are welcome on Tuesdays, Wednesdays and Thursdays when I have a gap. Ring the studio on 01772 378565 on the day to check. <a href="/prices/">Prices and what to expect</a>.</p>
     </div>
-    <p class="prose" style="margin-top:1.25rem">Walk-ins are welcome on Tuesdays, Wednesdays and Thursdays when I have a gap. Ring the studio on 01772 378565 on the day to check. <a href="/prices/">Prices and what to expect</a>.</p>
   </section>
+
+  <div class="arcade" aria-hidden="true"></div>
 
   <section id="faq" aria-labelledby="faq-h">
-    <h2 id="faq-h">Questions people ask</h2>
-    <div class="faq">
-      <details>
-        <summary>How much does a tattoo cost?</summary>
-        <p>Small pieces start from £70. Larger custom work is priced by the session: £210 for a half day and £400 for a full day. The <a href="/prices/">prices page</a> has the detail. Send me the idea and I'll give you a clear price before you pay anything.</p>
-      </details>
-      <details>
-        <summary>Do you do colour?</summary>
-        <p>Yes. I work in black and grey and in colour. Tell me what you're picturing and I'll say which suits it.</p>
-      </details>
-      <details>
-        <summary>Do you do cover-ups?</summary>
-        <p>Sometimes, when the old tattoo suits it. Send a clear photo of it in daylight and tell me what you'd like instead, and I'll tell you straight whether I can work with it. Cover-ups start from £140.</p>
-      </details>
-      <details>
-        <summary>Do you do memorial tattoos?</summary>
-        <p>Yes. A portrait of someone you've lost, their handwriting from a card or a note, a name and a date, or a cross that carries them. The <a href="/portrait-tattoos/">portraits</a> and <a href="/script-tattoos/">script</a> pages cover how I work on them.</p>
-      </details>
-      <details>
-        <summary>Can I just walk in?</summary>
-        <p>On Tuesdays, Wednesdays and Thursdays, yes, for small pieces. Ring the studio first on 01772 378565 to check I have a gap that day. Custom work is always booked in advance.</p>
-      </details>
-      <details>
-        <summary>Is there a deposit?</summary>
-        <p>Yes, £40. It holds your appointment and comes off the final price. It's non-refundable if you cancel with less than a week's notice.</p>
-      </details>
-      <details>
-        <summary>How old do I need to be?</summary>
-        <p>Eighteen, with photo ID on the day. That's the law in the UK, with no exceptions for parental consent.</p>
-      </details>
-      <details>
-        <summary>How do I look after a new tattoo?</summary>
-        <p>I'll go through aftercare with you at the end of your session and send you home with written instructions. In short: keep it clean, keep it moisturised with a thin layer, and keep it out of the sun and out of baths and pools for two weeks.</p>
-      </details>
-      <details>
-        <summary>Can I bring a friend?</summary>
-        <p>One friend is fine. The studio is a working space, so big groups aren't.</p>
-      </details>
+    <div class="reveal">
+      <h2 id="faq-h">Questions people ask</h2>
+      <div class="faq">
+        <details>
+          <summary>How much does a tattoo cost?</summary>
+          <p>Small pieces start from £70. Larger custom work is priced by the session: £210 for a half day and £400 for a full day. The <a href="/prices/">prices page</a> has the detail. Send me the idea and I'll give you a clear price before you pay anything.</p>
+        </details>
+        <details>
+          <summary>Do you do colour?</summary>
+          <p>Yes. I work in black and grey and in colour. Tell me what you're picturing and I'll say which suits it.</p>
+        </details>
+        <details>
+          <summary>Do you do cover-ups?</summary>
+          <p>Sometimes, when the old tattoo suits it. Send a clear photo of it in daylight and tell me what you'd like instead, and I'll tell you straight whether I can work with it. Cover-ups start from £140.</p>
+        </details>
+        <details>
+          <summary>Do you do memorial tattoos?</summary>
+          <p>Yes. A portrait of someone you've lost, their handwriting from a card or a note, a name and a date, or a cross that carries them. The <a href="/portrait-tattoos/">portraits</a> and <a href="/script-tattoos/">script</a> pages cover how I work on them.</p>
+        </details>
+        <details>
+          <summary>Can I just walk in?</summary>
+          <p>On Tuesdays, Wednesdays and Thursdays, yes, for small pieces. Ring the studio first on 01772 378565 to check I have a gap that day. Custom work is always booked in advance.</p>
+        </details>
+        <details>
+          <summary>Is there a deposit?</summary>
+          <p>Yes, £40. It holds your appointment and comes off the final price. It's non-refundable if you cancel with less than a week's notice.</p>
+        </details>
+        <details>
+          <summary>How old do I need to be?</summary>
+          <p>Eighteen, with photo ID on the day. That's the law in the UK, with no exceptions for parental consent.</p>
+        </details>
+        <details>
+          <summary>How do I look after a new tattoo?</summary>
+          <p>I'll go through aftercare with you at the end of your session and send you home with written instructions. In short: keep it clean, keep it moisturised with a thin layer, and keep it out of the sun and out of baths and pools for two weeks.</p>
+        </details>
+        <details>
+          <summary>Can I bring a friend?</summary>
+          <p>One friend is fine. The studio is a working space, so big groups aren't.</p>
+        </details>
+      </div>
     </div>
   </section>
 
-  <section id="find" aria-labelledby="find-h">
-    <h2 id="find-h">Find me</h2>
-    <div class="find">
-      <div>
-        <h3>The studio</h3>
-        <address>
-          True Colours Tattoo &amp; Piercing Studio<br>
-          14 Guildhall Street<br>
-          Preston PR1 3NU<br>
-          01772 378565
-        </address>
-        <p><a href="https://www.google.com/maps/search/?api=1&amp;query=True+Colours+Tattoo+14+Guildhall+Street+Preston+PR1+3NU">Open in Google Maps</a></p>
-        <p><a href="/lancashire/">Getting here from across Lancashire</a></p>
-      </div>
-      <div>
-        <h3>Elsewhere</h3>
-        <ul>
-          <li><a href="https://www.instagram.com/caitlincarneytattoo/">Instagram: @caitlincarneytattoo</a></li>
-          <li><a href="https://www.truecolourstattoo.co.uk/">True Colours website</a></li>
-        </ul>
+  <section id="find" class="panel" aria-labelledby="find-h">
+    <div class="reveal">
+      <h2 id="find-h">Find me</h2>
+      <div class="find">
+        <div>
+          <h3>The studio</h3>
+          <address>
+            True Colours Tattoo &amp; Piercing Studio<br>
+            14 Guildhall Street<br>
+            Preston PR1 3NU<br>
+            01772 378565
+          </address>
+          <p><a href="https://www.google.com/maps/search/?api=1&amp;query=True+Colours+Tattoo+14+Guildhall+Street+Preston+PR1+3NU">Open in Google Maps</a></p>
+          <p><a href="/lancashire/">Getting here from across Lancashire</a></p>
+        </div>
+        <div>
+          <h3>Elsewhere</h3>
+          <ul>
+            <li><a href="https://www.instagram.com/caitlincarneytattoo/">Instagram: @caitlincarneytattoo</a></li>
+            <li><a href="https://www.truecolourstattoo.co.uk/">True Colours website</a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -272,5 +317,80 @@
       <li><a href="https://www.instagram.com/caitlincarneytattoo/">Instagram</a></li>
     </ul>
   </footer>
+
+  <script>
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    // Sections rise into view
+    var items = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('in'); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      items.forEach(function (el) { io.observe(el); });
+    }
+
+    // Dust: a few dozen slow specks wherever a .dust box sits
+    document.querySelectorAll('.dust').forEach(function (box) {
+      for (var i = 0; i < 36; i++) {
+        var s = document.createElement('i');
+        s.style.left = (Math.random() * 100) + '%';
+        s.style.top = (40 + Math.random() * 60) + '%';
+        s.style.setProperty('--t', (12 + Math.random() * 16) + 's');
+        s.style.setProperty('--d', (-Math.random() * 20) + 's');
+        s.style.setProperty('--x', ((Math.random() - 0.5) * 120) + 'px');
+        s.style.setProperty('--o', (0.25 + Math.random() * 0.5).toFixed(2));
+        var size = (1.5 + Math.random() * 2.5).toFixed(1);
+        s.style.width = size + 'px'; s.style.height = size + 'px';
+        box.appendChild(s);
+      }
+    });
+
+    // Header turns glassy once scrolled; layers with a depth move at their own speed
+    var bar = document.getElementById('bar');
+    var layers = Array.prototype.slice.call(document.querySelectorAll('[data-depth]'));
+    var ticking = false;
+    function frame() {
+      ticking = false;
+      var y = window.scrollY || 0;
+      if (bar) { bar.classList.toggle('stuck', y > 40); }
+      if (reduce) { return; }
+      var vh = window.innerHeight;
+      layers.forEach(function (el) {
+        var r = el.getBoundingClientRect();
+        var centre = r.top + r.height / 2 - vh / 2;
+        var d = parseFloat(el.getAttribute('data-depth')) || 0;
+        el.style.transform = 'translate3d(0,' + (-centre * d).toFixed(1) + 'px,0)';
+      });
+    }
+    window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(frame); } }, { passive: true });
+    window.addEventListener('resize', frame);
+    frame();
+
+    // The lamp follows the pointer; frames tilt under it
+    var lamp = document.getElementById('lamp');
+    if (fine && !reduce) {
+      document.addEventListener('mousemove', function (e) {
+        lamp.style.transform = 'translate(' + (e.clientX - window.innerWidth * 0.45) + 'px,' + (e.clientY - window.innerHeight * 0.45) + 'px)';
+      });
+      document.querySelectorAll('.tilt').forEach(function (el) {
+        el.addEventListener('mousemove', function (e) {
+          var r = el.getBoundingClientRect();
+          var px = (e.clientX - r.left) / r.width - 0.5;
+          var py = (e.clientY - r.top) / r.height - 0.5;
+          el.style.setProperty('--ry', (px * 10).toFixed(2) + 'deg');
+          el.style.setProperty('--rx', (-py * 8).toFixed(2) + 'deg');
+        });
+        el.addEventListener('mouseleave', function () { el.style.setProperty('--ry', '0deg'); el.style.setProperty('--rx', '0deg'); });
+      });
+    } else if (lamp) {
+      lamp.style.transform = 'translate(' + (window.innerWidth * 0.3) + 'px,' + (window.innerHeight * 0.1) + 'px)';
+    }
+  })();
+  </script>
 </body>
 </html>
