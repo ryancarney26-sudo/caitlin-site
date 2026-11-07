@@ -20,6 +20,7 @@ Photos are written as one-line comments, so a page builds before the photos exis
     <!--photo portrait-tattoo-preston-01.jpg | alt text here -->
 
 If images/<file> exists in the site folder it becomes an <img>; otherwise a yellow placeholder.
+A --final build refuses to write anything while any referenced image is missing.
 """
 import datetime
 import json
@@ -28,7 +29,7 @@ import re
 import sys
 
 SRC = pathlib.Path(__file__).resolve().parent
-OUT = SRC.parent / "caitlin-site-v2"
+OUT = SRC.parent
 SITE = "https://caitlincarneytattoo.co.uk"
 FINAL = "--final" in sys.argv
 
@@ -207,7 +208,39 @@ def strip(path):
             + "\n".join(items) + "\n    </ul>\n  </nav>")
 
 
+def page_meta(text):
+    m = re.match(r"<!--meta\n(.*?)\n-->\n?", text, re.S)
+    meta = {}
+    if m:
+        for line in m.group(1).splitlines():
+            if ":" in line:
+                k, v = line.split(":", 1)
+                meta[k.strip()] = v.strip()
+    return meta
+
+
+def referenced_images():
+    """Every image the pages refer to, as (page file name, image name): gallery photos,
+    arches, each page's hero, and its share card (share-home.jpg when the page names none)."""
+    refs = []
+    for src in sorted((SRC / "pages").glob("*.html")):
+        text = src.read_text(encoding="utf-8")
+        meta = page_meta(text)
+        names = [m[0] for m in PHOTO_RE.findall(text)] + [m[0] for m in ARCH_RE.findall(text)]
+        if "hero" in meta:
+            names.append(meta["hero"].partition("|")[0].strip())
+        names.append(meta.get("og", "share-home.jpg"))
+        refs.extend((src.name, name) for name in names)
+    return refs
+
+
 def build():
+    if FINAL:
+        missing = [(page, name) for page, name in referenced_images()
+                   if not (OUT / "images" / name).exists()]
+        if missing:
+            sys.exit("Final build refused: missing images: "
+                     + ", ".join(f"{page}: {name}" for page, name in missing))
     urls = []
     blanks = {}
     for src in sorted((SRC / "pages").glob("*.html")):
