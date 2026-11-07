@@ -32,6 +32,7 @@ SRC = pathlib.Path(__file__).resolve().parent
 OUT = SRC.parent
 SITE = "https://caitlincarneytattoo.co.uk"
 FINAL = "--final" in sys.argv
+STAMP = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M")
 
 STUDIO_ID = "https://www.truecolourstattoo.co.uk/#studio"
 PERSON_ID = SITE + "/#caitlin"
@@ -297,6 +298,10 @@ def build():
                 .replace("{{body}}", body.rstrip())
                 .replace("{{strip}}", "" if home else strip(path)))
 
+        # A stamp on the shared files, so a changed stylesheet or script is fetched at once
+        # rather than served from a ten-minute cache
+        for asset in ("/assets/site.css", "/assets/site.js", "/assets/brush3d.js"):
+            page = page.replace(asset + '"', asset + "?v=" + STAMP + '"')
         out = OUT / ("index.html" if home else path.strip("/") + "/index.html")
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(page, encoding="utf-8", newline="\n")

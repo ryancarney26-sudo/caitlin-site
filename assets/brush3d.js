@@ -22,8 +22,11 @@ if (!canvas || !ink || reduce) {
 function run() {
   const hero = canvas.parentElement;
   const lineSvg = ink.ownerSVGElement;
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+  // Phones and touch screens get the light version: smaller shadow, no smoothing, and the scene
+  // stops rendering once the brush is at rest, since there is no pointer for it to follow
+  const lite = CCT.lite !== undefined ? CCT.lite : (!fine || window.innerWidth < 768);
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !lite, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(lite ? 1 : Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -45,7 +48,7 @@ function run() {
   const key = new THREE.DirectionalLight(0xfff1dc, 2.8);
   key.position.set(-500, 700, 900);
   key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.mapSize.set(lite ? 512 : 1024, lite ? 512 : 1024);
   key.shadow.radius = 4;
   key.shadow.bias = -0.0005;
   scene.add(key);
@@ -140,8 +143,8 @@ function run() {
   const start = pointAt(0), end = pointAt(1);
   // It comes to rest beside the end of the line, handle pointing right if there is room, else left
   const room = (end.x + W / 2) + 320 * k < W;
-  const restPos = new THREE.Vector3(room ? end.x + 90 * k : end.x + 16 * k, room ? end.y - 26 * k : end.y - 8 * k, 0);
-  const restZ = room ? -1.15 : -0.35;
+  const restPos = new THREE.Vector3(room ? end.x + 90 * k : end.x - 12 * k, room ? end.y - 26 * k : end.y - 6 * k, 0);
+  const restZ = room ? -1.15 : 0.38;
 
   function setOpacity(o) { mats.forEach(m => { m.opacity = o; }); }
 
@@ -234,11 +237,16 @@ function run() {
     new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) { requestAnimationFrame(frame); } }, { threshold: 0 }).observe(hero);
   }
   // At rest it only needs half the frames; while it moves it gets them all
-  let last = 0;
+  let last = 0, restFrames = 0;
   function frame(now) {
     if (!visible) { return; }
+    if (phase === 'rest') {
+      if (lite) {
+        // Nothing to follow on a touch screen: settle, draw a last frame or two, and stop
+        if (restFrames++ > 2) { return; }
+      } else if (now - last < 30) { requestAnimationFrame(frame); return; }
+    }
     requestAnimationFrame(frame);
-    if (phase === 'rest' && now - last < 30) { return; }
     last = now;
     update(now);
     renderer.render(scene, camera);
