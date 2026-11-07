@@ -10,11 +10,12 @@ const ink = document.getElementById('stencil-path');
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-function fallback() { if (canvas) { canvas.style.display = 'none'; } if (CCT.startFlatBrush) { CCT.startFlatBrush(); } }
+function fallback() { CCT.glBrush = false; if (canvas) { canvas.style.display = 'none'; } if (CCT.startFlatBrush) { CCT.startFlatBrush(); } }
 
 if (!canvas || !ink || reduce || CCT.lite) {
   fallback();
 } else {
+  CCT.glBrush = true;   // claimed: the flat brush stands down unless the library fails to arrive
   import('/assets/vendor/three.module.min.js')
     .then((THREE) => { try { run(THREE); } catch (e) { fallback(); } })
     .catch(() => fallback());

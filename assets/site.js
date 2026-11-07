@@ -329,63 +329,93 @@
          cannot run, or here when it is not loaded at all. */
   var brush = document.getElementById('brush');
   var ink = document.getElementById('stencil-path');
+  // One script loop drives the brush and the line together, frame by frame, on one clock that starts
+  // the moment this runs. Plain transforms only: stacked Web Animations froze the brush on iPhone.
   window.CCT.startFlatBrush = function () {
-    if (!brush || !ink || reduce || !brush.animate || !window.CSS || !CSS.supports('offset-path', 'path("M0 0 L1 1")')) { return; }
-    if (brush.dataset.started) { return; }
+    if (!brush || !ink || reduce || brush.dataset.started) { return; }
     brush.dataset.started = '1';
     var art = brush.querySelector('svg.art');
     var sil = art.cloneNode(true);
     sil.setAttribute('class', 'sil');
     brush.insertBefore(sil, art);
     var lineSvg = ink.ownerSVGElement;
+    var wet = lineSvg.querySelector('path.wet');
     var host = brush.offsetParent || lineSvg.parentNode;
-    var endX = 0, endY = 0;
+    var DASH = 598;
+    [ink, wet].forEach(function (p) { if (p) { p.style.animation = 'none'; p.style.strokeDashoffset = DASH; } });
+    var L = ink.getTotalLength();
+    var s = 1, x0 = 0, y0 = 0, h = 200, endX = 0, endY = 0, flyX = 0, flyY = 0;
+    var pt = function (u) { var p = ink.getPointAtLength(u * L); return { x: x0 + p.x * s, y: y0 + p.y * s }; };
     var place = function () {
-      var r = lineSvg.getBoundingClientRect();
-      var hr = host.getBoundingClientRect();
-      var s = r.width / 600;
-      var top = r.top - hr.top + (r.height - 18 * s) / 2;
-      var d = ink.getAttribute('d').replace(/-?\d*\.?\d+/g, function (n) { return (parseFloat(n) * s).toFixed(2); });
-      brush.style.left = (r.left - hr.left) + 'px';
-      brush.style.top = top + 'px';
-      brush.style.offsetPath = 'path("' + d + '")';
-      var h = Math.max(130, Math.min(340, r.width * 0.5));
-      brush.style.height = h + 'px';
-      brush.style.width = (h * 120 / 320) + 'px';
-      endX = r.left - hr.left + 598 * s;
-      endY = top + 8 * s;
+      var r = lineSvg.getBoundingClientRect(), hr = host.getBoundingClientRect();
+      s = r.width / 600;
+      x0 = r.left - hr.left;
+      y0 = r.top - hr.top + (r.height - 18 * s) / 2;
+      h = Math.max(130, Math.min(340, r.width * 0.5));
+      var w = h * 120 / 320;
+      brush.style.height = h + 'px'; brush.style.width = w + 'px';
+      // The box sits so that its tip, the transform origin, is on the start of the line
+      var p0 = pt(0);
+      brush.style.left = (p0.x - w / 2) + 'px';
+      brush.style.top = (p0.y - h) + 'px';
+      var e = pt(1); endX = e.x; endY = e.y;
+      flyX = window.innerWidth * 0.4; flyY = -window.innerHeight * 0.7;
     };
     place();
     window.addEventListener('resize', place);
-    var t0 = 0;
-    try { var a = ink.getAnimations ? ink.getAnimations()[0] : null; if (a && a.currentTime !== null) { t0 = a.currentTime; } } catch (e) {}
-    var P = 'perspective(900px) ';
-    var swoop = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
-    brush.animate([
-      { offset: 0, opacity: 0, transform: 'translate(40vw, -75vh) ' + P + 'rotateY(70deg) rotateX(20deg) rotate(-40deg) scale(3)', filter: 'blur(6px)' },
-      { offset: 0.5, opacity: 1, filter: 'blur(2px)' },
-      { offset: 0.88, transform: 'translate(0px, 0px) ' + P + 'rotateY(0deg) rotateX(32deg) rotate(28deg) scale(0.96)', filter: 'blur(0px)' },
-      { offset: 1, opacity: 1, transform: 'translate(0px, 0px) ' + P + 'rotateY(0deg) rotateX(32deg) rotate(28deg) scale(1)', filter: 'blur(0px)' }
-    ], { duration: 800, delay: 300 - t0, easing: swoop, fill: 'forwards' });
-    brush.animate([
-      { offset: 0, offsetDistance: '0%', transform: P + 'rotateY(0deg) rotateX(32deg) rotate(28deg) scale(1)' },
-      { offset: 0.5, transform: P + 'rotateY(0deg) rotateX(30deg) rotate(33deg) scale(1)' },
-      { offset: 1, offsetDistance: '100%', transform: P + 'rotateY(0deg) rotateX(32deg) rotate(26deg) scale(1)' }
-    ], { duration: 1600, delay: 1100 - t0, easing: 'ease-out', fill: 'forwards' });
-    brush.animate([
-      { offset: 0, offsetDistance: '100%', transform: 'translate(0px, 0px) ' + P + 'rotateY(0deg) rotateX(32deg) rotate(26deg) scale(1)', opacity: 1, filter: 'blur(0px)' },
-      { offset: 1, offsetDistance: '100%', transform: 'translate(120px, -240px) ' + P + 'rotateY(-40deg) rotateX(10deg) rotate(4deg) scale(1.6)', opacity: 0, filter: 'blur(4px)' }
-    ], { duration: 750, delay: 2700 - t0, easing: 'cubic-bezier(0.4, 0, 0.9, 0.5)', fill: 'forwards' });
-    sil.animate([
-      { transform: 'translate(170px, 150px) scale(1.3)', filter: 'blur(30px)', opacity: 0.2 },
-      { transform: 'translate(16px, 12px) scale(1)', filter: 'blur(6px)', opacity: 0.5 }
-    ], { duration: 800, delay: 300 - t0, easing: swoop, fill: 'forwards' });
-    sil.animate([
-      { transform: 'translate(16px, 12px) scale(1)', filter: 'blur(6px)', opacity: 0.5 },
-      { transform: 'translate(150px, 120px) scale(1.35)', filter: 'blur(32px)', opacity: 0 }
-    ], { duration: 750, delay: 2700 - t0, easing: 'ease-in', fill: 'forwards' });
-    window.CCT.lightName(t0);
-    window.CCT.flecks(host, endX, endY, t0);
+    var bez = function (x1, y1, x2, y2) { return function (x) {
+      var lo = 0, hi = 1, t = x;
+      for (var i = 0; i < 20; i++) { var cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t; if (cx < x) { lo = t; } else { hi = t; } t = (lo + hi) / 2; }
+      return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
+    }; };
+    var easeOut = bez(0, 0, 0.58, 1), swoop = bez(0.2, 0.8, 0.2, 1), easeIn = bez(0.4, 0, 0.9, 0.5);
+    var lerp = function (a, b, t) { return a + (b - a) * t; };
+    var P = lite ? '' : 'perspective(900px) rotateX(30deg) ';
+    var base = pt(0);
+    var set = function (dx, dy, rot, sc, op, blur, sdx, sdy, sblur, sop) {
+      brush.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) ' + P + 'rotate(' + rot.toFixed(2) + 'deg) scale(' + sc.toFixed(3) + ')';
+      brush.style.opacity = op.toFixed(3);
+      if (!lite) { art.style.filter = blur > 0.05 ? 'blur(' + blur.toFixed(1) + 'px)' : ''; }
+      sil.style.transform = 'translate(' + sdx.toFixed(1) + 'px,' + sdy.toFixed(1) + 'px)';
+      sil.style.opacity = sop.toFixed(3);
+      if (!lite) { sil.style.filter = 'blur(' + sblur.toFixed(1) + 'px)'; }
+    };
+    var start = performance.now(), lit = false, flecked = false;
+    window.CCT.lightName(0);
+    var frame = function (now) {
+      var t = (now - start) / 1000;
+      if (t < 0.3) { brush.style.opacity = '0'; requestAnimationFrame(frame); return; }
+      if (t < 1.1) {
+        var u = swoop((t - 0.3) / 0.8);
+        var dab = u > 0.9 ? 1 - (u - 0.9) * 10 : 0;
+        set(lerp(flyX, 0, u), lerp(flyY, 0, u), lerp(-40, 28, u), lerp(3, 1, u) * (1 - 0.04 * dab), Math.min(1, u * 2), lerp(6, 0, u),
+            lerp(170, 16, u), lerp(150, 12, u), lerp(30, 6, u), lerp(0.2, 0.5, u));
+      } else if (t < 2.7) {
+        var v = easeOut((t - 1.1) / 1.6);
+        var p = pt(v);
+        var wob = Math.sin(v * Math.PI * 3) * 3;
+        set(p.x - base.x, p.y - base.y, 28 + wob, 1, 1, 0, 16, 12, 6, 0.5);
+        var off = (DASH * (1 - v)).toFixed(1);
+        ink.style.strokeDashoffset = off;
+        if (wet) { wet.style.strokeDashoffset = off; }
+      } else if (t < 3.45) {
+        var q = easeIn((t - 2.7) / 0.75);
+        ink.style.strokeDashoffset = '0';
+        if (wet) { wet.style.strokeDashoffset = '0'; }
+        set(endX - base.x + 120 * q, endY - base.y - 240 * q, lerp(28, 4, q), lerp(1, 1.6, q), 1 - q, 4 * q,
+            lerp(16, 150, q), lerp(12, 120, q), lerp(6, 32, q), 0.5 * (1 - q));
+        if (!flecked) { flecked = true; window.CCT.flecks(host, endX, endY, 2680); }
+      } else {
+        brush.style.opacity = '0';
+      }
+      if (wet && t > 2.8) {
+        var d = Math.max(0, Math.min(1, (t - 2.8) / 1.4));
+        wet.style.opacity = (0.32 * (1 - easeOut(d))).toFixed(3);
+        wet.style.strokeWidth = (12 - 7 * d).toFixed(1) + 'px';
+      }
+      if (t < 4.3) { requestAnimationFrame(frame); }
+    };
+    requestAnimationFrame(frame);
   };
   window.CCT.lightName = function (t0) {
     var name = document.querySelector('.hero h1');
@@ -414,5 +444,9 @@
   window.CCT.strokeStart = function () {
     try { var a = ink && ink.getAnimations ? ink.getAnimations()[0] : null; return (a && a.currentTime !== null) ? a.currentTime : 0; } catch (e) { return 0; }
   };
-  if (brush && !document.getElementById('brush-gl')) { window.CCT.startFlatBrush(); }
+  // The 3D script claims the brush on the home page where it can; otherwise, or if it never arrives,
+  // the flat brush runs. Browsers without module scripts never load the 3D script at all.
+  var gl = document.getElementById('brush-gl');
+  if (brush && (!gl || !('noModule' in HTMLScriptElement.prototype))) { window.CCT.startFlatBrush(); }
+  else if (brush) { setTimeout(function () { if (!window.CCT.glBrush) { window.CCT.startFlatBrush(); } }, 2500); }
 })();
