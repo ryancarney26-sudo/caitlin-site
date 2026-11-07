@@ -138,7 +138,7 @@ def head_art(body, meta):
     if "hero" not in meta:
         return body
     name, _, alt = meta["hero"].partition("|")
-    fig = "\n    " + arch_html(name.strip(), alt.strip(), "head-art tilt")
+    fig = "\n    " + arch_html(name.strip(), alt.strip(), "head-art tilt", 'style="view-transition-name: vt-' + meta["path"].strip("/") + '"')
     return HEAD_RE.sub(
         lambda m: '<div class="page-head has-art">\n    <div class="head-copy">'
                   + m.group(2) + "\n    </div>" + fig + m.group(3),
@@ -293,6 +293,7 @@ def build():
                 .replace("{{cur_work}}", "")
                 .replace("{{cur_prices}}", ' aria-current="page"' if path == "/prices/" else "")
                 .replace("{{cur_about}}", ' aria-current="page"' if path == "/about/" else "")
+                .replace("{{home_scripts}}", '  <script type="module" src="/assets/brush3d.js"></script>' if home else "")
                 .replace("{{body}}", body.rstrip())
                 .replace("{{strip}}", "" if home else strip(path)))
 
