@@ -8,8 +8,22 @@ description: Caitlin Carney is a tattoo artist at True Colours in Preston, Lanca
     <div class="dust" aria-hidden="true"></div>
     <div class="hero-copy" data-depth="0.04">
       <h1>Caitlin Carney Tattoo</h1>
-      <svg class="stencil-line" viewBox="0 0 600 18" aria-hidden="true" preserveAspectRatio="none">
-        <path d="M2 9 C 80 4, 140 14, 220 9 S 360 3, 440 10 S 560 14, 598 8"/>
+      <svg class="stencil-line" viewBox="0 0 600 18" aria-hidden="true" preserveAspectRatio="xMinYMid meet">
+        <path id="stencil-path" d="M2 9 C 80 4, 140 14, 220 9 S 360 3, 440 10 S 560 14, 598 8"/>
+        <!-- A small brush paints the line in as the page opens; the script starts it in step with the stroke -->
+        <g class="brush" id="brush" opacity="0">
+          <g transform="rotate(32)">
+            <path d="M0,0 C-3.2,-4 -3.2,-10 0,-12.5 C3.2,-10 3.2,-4 0,0 Z" fill="#e9e2d3"/>
+            <path d="M0,0 C-2.2,-2 -2.4,-5.5 0,-6.5 C2.4,-5.5 2.2,-2 0,0 Z" fill="#9a7fd1"/>
+            <rect x="-2.8" y="-19" width="5.6" height="7" rx="1.2" fill="#d6cfc2"/>
+            <rect x="-2.8" y="-14.5" width="5.6" height="1" fill="#8f877a"/>
+            <rect x="-2.1" y="-42" width="4.2" height="23.5" rx="2" fill="#6b4a2a"/>
+            <rect x="-0.9" y="-41" width="1" height="21" rx="0.5" fill="#a07a4f" opacity="0.8"/>
+          </g>
+          <animateMotion id="brushMove" dur="1.6s" begin="indefinite" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0 0 0.58 1"><mpath href="#stencil-path"/></animateMotion>
+          <animateTransform attributeName="transform" type="translate" from="0 0" to="8 -14" begin="brushMove.end" dur="0.5s" fill="freeze" additive="sum"/>
+          <animate attributeName="opacity" from="1" to="0" begin="brushMove.end+0.1s" dur="0.45s" fill="freeze"/>
+        </g>
       </svg>
       <p class="tagline">Tattoo artist at True Colours, Preston. Portraits, Christian pieces and script, in black and grey or colour. Walk-ins on Tuesdays, Wednesdays and Thursdays when there's a gap.</p>
       <div class="actions">

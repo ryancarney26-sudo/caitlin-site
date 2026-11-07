@@ -131,9 +131,9 @@ a:hover { color: var(--bone); }
   text-shadow: 0 0 60px rgba(154,127,209,0.25), 0 2px 30px rgba(0,0,0,0.7);
 }
 .stencil-line { display: block; width: min(100%, 36rem); height: 18px; margin: 1rem 0 1.5rem; overflow: visible; }
-.stencil-line path { fill: none; stroke: var(--violet); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 14 9; filter: drop-shadow(0 0 6px rgba(154,127,209,0.8)); }
+.stencil-line > path { fill: none; stroke: var(--violet); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 14 9; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 6px rgba(154,127,209,0.8)); }
 @media (prefers-reduced-motion: no-preference) {
-  .hero .stencil-line path { stroke-dasharray: 14 9 1200; stroke-dashoffset: 1200; animation: draw 1.6s ease-out 0.3s forwards; }
+  .hero .stencil-line > path { stroke-dasharray: 1200; stroke-dashoffset: 1200; animation: draw 1.6s ease-out 0.3s forwards; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
 }
 .hero .tagline { font-size: clamp(1.25rem, 2.4vw, 1.5rem); line-height: 1.45; max-width: 32ch; margin: 0 0 1.75rem; color: var(--bone); text-wrap: balance; }
@@ -356,3 +356,7 @@ footer ul { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; fle
 }
 @keyframes glint { from { stroke-dashoffset: 300; } to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .lightbox[open] { animation: none; } }
+
+/* The brush that paints the line in on the home page */
+.stencil-line .brush { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6)); }
+@media (prefers-reduced-motion: reduce) { .stencil-line .brush { display: none; } }

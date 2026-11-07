@@ -222,6 +222,20 @@
       items.forEach(function (el) { io.observe(el); });
     }
 
+    // The brush paints the line under her name as the home page opens, in step with the stroke
+    var brushMove = document.getElementById('brushMove');
+    var brush = document.getElementById('brush');
+    var ink = document.getElementById('stencil-path');
+    if (brushMove && brush && ink && !reduce && typeof brushMove.beginElementAt === 'function') {
+      var lead = 0.3;   // the stroke's own delay, in seconds
+      try {
+        var anims = ink.getAnimations ? ink.getAnimations() : [];
+        if (anims.length && anims[0].currentTime !== null) { lead = 0.3 - anims[0].currentTime / 1000; }
+      } catch (e) {}
+      brushMove.beginElementAt(lead);
+      setTimeout(function () { brush.setAttribute('opacity', '1'); }, Math.max(0, lead * 1000));
+    }
+
     // Dust: a few dozen slow specks wherever a .dust box sits
     document.querySelectorAll('.dust').forEach(function (box) {
       for (var i = 0; i < 36; i++) {
