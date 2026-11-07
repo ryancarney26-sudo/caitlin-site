@@ -100,6 +100,84 @@ def test_prompts_name_the_instagram_app_id(monkeypatch, capsys):
     assert authorize_url("123") in capsys.readouterr().out
 
 
+# 7 Nov 2026, the first real run: Meta answered "HTTP Error 400: Bad Request" and the script
+# hid its reason behind a traceback. Ryan needs the reason in one line, and what to do about it.
+
+def http_error(status, payload):
+    import io
+    import urllib.error
+
+    def http(url, data=None):
+        raise urllib.error.HTTPError(url, status, "Bad Request", {}, io.BytesIO(json.dumps(payload).encode()))
+    return http
+
+
+WRONG_SECRET = {"error_type": "OAuthException", "code": 400, "error_message": "Error validating client secret."}
+
+
+def test_exchange_says_why_meta_refused_and_what_to_do():
+    from connect import ConnectError
+    with pytest.raises(ConnectError) as e:
+        exchange("3191758714511348", "s3cret-value", "XYZ", http=http_error(400, WRONG_SECRET))
+    message = str(e.value)
+    assert "Meta said: Error validating client secret." in message
+    assert "Instagram app secret" in message           # the plain-English next step
+    assert "s3cret-value" not in message
+
+
+def test_a_used_code_asks_for_a_fresh_one():
+    from connect import ConnectError
+    used = {"error_type": "OAuthException", "code": 400, "error_message": "This authorization code has been used"}
+    with pytest.raises(ConnectError, match="press Allow again"):
+        exchange("3191758714511348", "sec", "XYZ", http=http_error(400, used))
+
+
+def test_graph_style_errors_are_read_too():
+    from connect import ConnectError
+    graph = {"error": {"message": "Invalid OAuth access token.", "type": "OAuthException", "code": 190}}
+    with pytest.raises(ConnectError, match="Invalid OAuth access token."):
+        exchange("3191758714511348", "sec", "XYZ", http=http_error(400, graph))
+
+
+def test_main_prints_the_reason_without_a_traceback(monkeypatch, capsys):
+    import connect
+    answers = iter(["", "XYZ"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(answers))
+    monkeypatch.setattr(connect.getpass, "getpass", lambda prompt="": "s3cret-value")
+    monkeypatch.setattr(connect, "check_gh", lambda: None)
+    monkeypatch.setattr(connect, "_http", http_error(400, WRONG_SECRET))
+    assert connect.main([]) == 1
+    out = capsys.readouterr().out
+    assert "Meta said: Error validating client secret." in out
+    assert "Secret received: 12 characters" in out     # a check the paste worked, without showing it
+    assert "s3cret-value" not in out
+
+
+def test_app_id_is_filled_in_when_left_blank(monkeypatch, capsys):
+    import connect
+    monkeypatch.setattr("builtins.input", lambda prompt="": "")
+    connect.main(["--link"])
+    assert "client_id=3191758714511348" in capsys.readouterr().out
+
+
+def test_empty_answers_are_asked_for_again(monkeypatch):
+    """A secret pasted with a line break leaves an empty answer waiting for the code question."""
+    import connect
+    answers = iter(["", "", "XYZ"])
+    secrets = iter(["", "sec"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(answers))
+    monkeypatch.setattr(connect.getpass, "getpass", lambda prompt="": next(secrets))
+    monkeypatch.setattr(connect, "check_gh", lambda: None)
+    seen = {}
+
+    def fake_exchange(app_id, app_secret, code, http=None):
+        seen.update(app_id=app_id, app_secret=app_secret, code=code)
+        raise connect.ConnectError("stop here")
+    monkeypatch.setattr(connect, "exchange", fake_exchange)
+    assert connect.main([]) == 1
+    assert seen == {"app_id": "3191758714511348", "app_secret": "sec", "code": "XYZ"}
+
+
 def test_store(tmp_path):
     secrets = []
     store("LONG", 5183944, NOW, tmp_path, lambda name, value: secrets.append((name, value)))
