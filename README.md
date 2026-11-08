@@ -13,6 +13,11 @@ block is written by `_src/opener.py` (run `python -I _src/opener.py`; change the
 not in the stylesheet). On big screens with a mouse, `assets/brush3d.js` then brings a three.js
 brush down to rest at the end of the line, where it follows the pointer; phones never load it.
 
+For AI tools: `llms.txt` is a plain summary of the site with a link to every page, and
+`llms-full.txt` is every page as plain text, photo descriptions included. Both are written by
+`make.py` on every build, from the hand-written summary in `_src/llms.md` and the pages
+themselves, so they never go stale. Edit `_src/llms.md` if a fact changes (prices, days, phone).
+
 New tattoos arrive by themselves: Caitlin posts to Instagram, and a robot on GitHub puts the
 photo on the site that evening. See **New photos from Instagram** below.
 

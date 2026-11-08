@@ -17,3 +17,6 @@ User-agent: Googlebot
 Allow: /
 
 Sitemap: https://caitlincarneytattoo.co.uk/sitemap.xml
+
+# A plain-text summary of the site for AI tools: https://caitlincarneytattoo.co.uk/llms.txt
+# Every page as one text file: https://caitlincarneytattoo.co.uk/llms-full.txt
