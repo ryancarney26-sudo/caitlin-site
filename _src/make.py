@@ -61,7 +61,7 @@ PERSON = {
     "name": "Caitlin Carney",
     "alternateName": ["Caitlin Carney Tattoo", "Caitlin O'Brien"],
     "jobTitle": "Tattoo artist",
-    "description": "Tattoo artist at True Colours in Preston, Lancashire. Portraits of people, pets and film and TV characters, Christian pieces, script and lettering, and memorial work, in black and grey or colour. Walk-ins Tuesday to Thursday.",
+    "description": "Portrait and Christian tattoo artist at True Colours in Preston, Lancashire. Realism portraits of people, pets and film and TV characters from clients' own photos, Christian pieces, script and lettering, and memorial work, in black and grey or colour. Walk-ins Tuesday to Thursday.",
     "url": SITE + "/",
     "worksFor": {"@id": STUDIO_ID},
     "workLocation": {"@id": STUDIO_ID},
@@ -423,6 +423,8 @@ def build():
                 .replace("{{cur_work}}", "")
                 .replace("{{cur_prices}}", ' aria-current="page"' if path == "/prices/" else "")
                 .replace("{{cur_about}}", ' aria-current="page"' if path == "/about/" else "")
+                .replace("{{float_href}}", "#book" if home else "tel:+441772378565" if path == "/walk-in-tattoos/" else "https://www.truecolourstattoo.co.uk/quotation-booking-request")
+                .replace("{{float_label}}", "Ring the studio" if path == "/walk-in-tattoos/" else "Tell me your idea" if home else "Get a quote")
                 .replace("{{home_scripts}}", '  <script type="module" src="/assets/brush3d.js"></script>' if home else "")
                 .replace("{{body}}", body.rstrip())
                 .replace("{{strip}}", "" if home else strip(path)))

@@ -490,3 +490,25 @@ html.lenis, html.lenis body { height: auto; }
 @keyframes fleck { 0% { transform: translate(0, 0) scale(1); opacity: 0; } 8% { opacity: 0.95; } 100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; } }
 @keyframes name-glow { 0% { opacity: 0; animation-timing-function: ease-out; } 20% { opacity: 1; animation-timing-function: ease-in-out; } 100% { opacity: 0; } }
 /* opener:end */
+
+/* Proof under the hero: short true facts, each marked with a small violet arch */
+.proof { list-style: none; margin: 1.6rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.55rem 1.5rem; color: var(--muted); font-size: 0.95rem; }
+.proof li { display: flex; align-items: center; gap: 0.55rem; }
+.proof li::before { content: ""; width: 10px; height: 13px; flex: none; filter: drop-shadow(0 0 4px rgba(154,127,209,0.7));
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 13'%3E%3Cpath d='M0 13V5.5C0 2.5 3 .8 5 0c2 .8 5 2.5 5 5.5V13z' fill='%239a7fd1'/%3E%3C/svg%3E") no-repeat center / contain; }
+
+/* Why people come to her: four reasons, each under a violet-lit rule */
+.reasons { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 2.2rem 3rem; max-width: 70rem; margin-top: 1.5rem; }
+.reasons > div { position: relative; border-top: 1px solid var(--rule); padding-top: 1.3rem; }
+.reasons > div::before { content: ""; position: absolute; top: -1px; left: 0; width: 3.5rem; height: 1px; background: var(--violet); box-shadow: 0 0 10px rgba(154,127,209,0.9); }
+.reasons h3 { font-family: var(--quote); font-weight: 500; font-size: 1.55rem; line-height: 1.2; margin: 0 0 0.5rem; color: var(--bone); }
+.reasons p { margin: 0; color: var(--muted); max-width: 46ch; }
+
+/* On phones, a way to book that stays in reach once the first screen is scrolled past */
+.book-float { display: none; }
+@media (max-width: 47.99rem) {
+  .book-float { display: inline-flex; position: fixed; z-index: 30; left: 50%; bottom: max(16px, env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 180%);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.65), 0 0 24px rgba(154,127,209,0.45); transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); white-space: nowrap; }
+  .book-float.show { transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .book-float { transition: none; } }

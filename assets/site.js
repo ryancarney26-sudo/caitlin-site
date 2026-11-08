@@ -330,4 +330,21 @@
     dlg.addEventListener('close', function () { lbImg.removeAttribute('src'); opens[cur].focus(); if (lenis) { lenis.start(); } });
   }
 
+  /* 10. On phones, a way to book that stays in reach: it shows once the first screen has been
+         scrolled past, and steps aside while the booking section or the footer is on screen */
+  var float = document.getElementById('book-float');
+  if (float && 'IntersectionObserver' in window) {
+    var past = false, inView = new Map();
+    var place = function () {
+      var blocked = false;
+      inView.forEach(function (v) { if (v) { blocked = true; } });
+      float.classList.toggle('show', past && !blocked);
+    };
+    var onScroll = function () { var p = (window.scrollY || 0) > window.innerHeight * 0.6; if (p !== past) { past = p; place(); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    if (lenis) { lenis.on('scroll', onScroll); }
+    var watch = new IntersectionObserver(function (es) { es.forEach(function (e) { inView.set(e.target, e.isIntersecting); }); place(); }, { threshold: 0 });
+    document.querySelectorAll('#book, footer').forEach(function (el) { watch.observe(el); });
+    onScroll();
+  }
 })();
