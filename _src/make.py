@@ -124,8 +124,12 @@ ARCH_SVG = ('<svg class="line" viewBox="0 0 100 150" preserveAspectRatio="none" 
 def arch_html(name, alt, classes="", attrs=""):
     cls = ("arch " + (classes or "")).strip()
     extra = (" " + attrs.strip()) if attrs else ""
+    # The hero photos load at once. Every other arch waits until it is near the screen, so on a
+    # phone it does not take bandwidth from the hero and the page's scripts.
+    hero = any(c in cls.split() for c in ("big", "small", "head-art"))
+    load = ' decoding="async"' if hero else ' loading="lazy" decoding="async"'
     return (f'<figure class="{cls}"{extra}><img src="/images/{name}" alt="{esc(alt)}" '
-            f'width="800" height="1200"><div class="recess"></div>{ARCH_SVG}</figure>')
+            f'width="800" height="1200"{load}><div class="recess"></div>{ARCH_SVG}</figure>')
 
 
 def arch(m):
@@ -155,7 +159,7 @@ def photo(m):
     if (OUT / "images" / name).exists():
         cls = ("reveal tilt " + extra).strip()
         return (f'<figure class="{cls}"><a class="open" href="/images/{name}">'
-                f'<img src="/images/{name}" alt="{esc(alt)}" loading="lazy"></a>'
+                f'<img src="/images/{name}" alt="{esc(alt)}" loading="lazy" decoding="async"></a>'
                 f"<figcaption>{esc(alt)}</figcaption></figure>")
     return (f'<figure><div class="ph" role="img" aria-label="Photo to come: {esc(alt)}">'
             f"photo: images/{name}<br>alt: {esc(alt)}</div></figure>")
