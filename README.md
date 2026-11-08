@@ -1,9 +1,17 @@
 # Caitlin Carney Tattoo
 
 Static site. The files in this folder are the whole site: plain HTML, one shared stylesheet
-in `assets/site.css`, and one small inline script in every page (from `_src/template.html`)
-that does the motion: sections rising into view, the glow that follows the pointer, the drifting
-dust, the tilting frames. All of it switches off when a visitor's device asks for reduced motion.
+in `assets/site.css`, and `assets/site.js` for the motion: smooth scrolling, sections rising into
+view, the glow that follows the pointer, the drifting dust, the tilting frames. It uses GSAP,
+ScrollTrigger and Lenis, pinned copies of which live in `assets/vendor/`. All of it switches off
+when a visitor's device asks for reduced motion, and nothing on the page waits for it to load:
+content starts visible, and only what is still below the screen is hidden to rise into view.
+
+The opener, the brush that paints the line under the name on the home page, is pure CSS that
+moves only transform and opacity, so it starts on the first frame and needs no script. Its CSS
+block is written by `_src/opener.py` (run `python -I _src/opener.py`; change the timings there,
+not in the stylesheet). On big screens with a mouse, `assets/brush3d.js` then brings a three.js
+brush down to rest at the end of the line, where it follows the pointer; phones never load it.
 
 New tattoos arrive by themselves: Caitlin posts to Instagram, and a robot on GitHub puts the
 photo on the site that evening. See **New photos from Instagram** below.
