@@ -102,10 +102,10 @@ function run(THREE) {
     end = toWorld(r.left - hr.left + p.x * r.width / 600, r.top - hr.top + p.y * r.height / 18);
     k = Math.max(170, Math.min(420, r.width * 0.62)) / 300;
     brush.scale.setScalar(k);
-    // Rest beside the end of the line, handle to the right if there is room, else standing up
-    const room = (end.x + W / 2) + 320 * k < W;
-    restPos = new THREE.Vector3(room ? end.x + 90 * k : end.x - 12 * k, room ? end.y - 26 * k : end.y - 6 * k, 0);
-    restZ = room ? -1.15 : 0.38;
+    // Rest standing on the end of the line, leaning back a little into the space beside the name,
+    // so it never lies across the photos to the right
+    restPos = new THREE.Vector3(end.x + 6 * k, end.y - 4 * k, 0);
+    restZ = 0.2;
   }
   resize();
   window.addEventListener('resize', resize);

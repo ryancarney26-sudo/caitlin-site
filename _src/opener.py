@@ -31,7 +31,7 @@ SEGMENTS = [((2, 9), (80, 4), (140, 14), (220, 9)),          # the S commands wr
 
 # Timings, in seconds from the moment the page is first drawn
 START = 0.10    # the brush starts to drop towards the page
-DROP = 0.45     # it lands on the start of the line
+DROP = 0.50     # it swoops in on a diagonal and lands on the start of the line
 PAINT = 1.40    # it paints the line
 LIFT = 0.60     # it lifts away and fades
 PAINT_EASE = (0.35, 0.05, 0.25, 1)   # quick to get going, a long gentle finish
@@ -133,8 +133,8 @@ def build():
     # The brush itself: drops in from in front of the page, tilts back out of it while it paints
     # (the handle comes towards you), then lifts away towards you and fades
     pen_pose = keyframes("pen-pose", [
-        (0, "transform: %s; opacity: 0" % pose(90, -190, -38, 26, -14, 1.6), swoop),
-        (0.16, "opacity: 1", None),
+        (0, "transform: %s; opacity: 0" % pose(170, -240, -46, 34, 52, 1.85), swoop),
+        (0.12, "opacity: 1", None),
         (land, "transform: %s" % pose(0, 0, -26, 0, 26, 0.94), "ease-out"),
         (land + 0.11, "transform: %s" % pose(0, 0, -26, 0, 29, 1), "ease-in-out"),
         (land + 0.5, "transform: %s" % pose(0, 0, -24, 0, 32, 1), "ease-in-out"),
@@ -145,7 +145,7 @@ def build():
 
     # Its shadow on the page: far off and faint while the brush is high, tight under it while it paints
     pen_shadow = keyframes("pen-shadow", [
-        (0, "transform: %s; opacity: 0" % shade(170, 70, 22, 1.3, 1.15), swoop),
+        (0, "transform: %s; opacity: 0" % shade(200, 80, 44, 1.35, 1.2), swoop),
         (land, "transform: %s; opacity: 0.42" % shade(9, 7, 38, 1, 0.92), None),
         (lift, "transform: %s; opacity: 0.42" % shade(9, 7, 38, 1, 0.92), away),
         (pose_len, "transform: %s; opacity: 0" % shade(150, 60, 28, 1.3, 1.15), None),
