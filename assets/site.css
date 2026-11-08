@@ -96,11 +96,12 @@ a:hover { color: var(--bone); }
 .bar nav a { text-decoration: none; color: var(--bone); }
 .bar nav a:hover, .bar nav a[aria-current="page"] { color: var(--violet); }
 
-/* Reveals and parallax */
-.reveal { opacity: 0; transform: translateY(26px); transition: opacity 0.9s ease, transform 0.9s ease; }
-.reveal.in { opacity: 1; transform: none; }
+/* Reveals and parallax. Everything is visible to begin with, so nothing waits on a slow connection:
+   the script hides only what is still below the screen when it starts, and lets it rise into view */
+.reveal { transition: opacity 0.9s ease, transform 0.9s ease; }
+.reveal.wait { opacity: 0; transform: translateY(26px); }
 [data-depth] { will-change: transform; }
-@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .reveal, .reveal.wait { opacity: 1; transform: none; transition: none; } }
 
 /* Carved windows */
 .arch { position: relative; margin: 0; filter: drop-shadow(0 30px 40px rgba(0,0,0,0.65)) drop-shadow(0 4px 10px rgba(0,0,0,0.5)); transform-style: preserve-3d; }

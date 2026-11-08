@@ -43,36 +43,42 @@
   else { window.addEventListener('scroll', function () { onScrollY(window.scrollY || 0); }, { passive: true }); }
   onScrollY(window.scrollY || 0);
 
-  /* 3. Reveals and parallax */
+  /* 3. Reveals and parallax. Everything starts visible (on a slow phone these scripts can arrive
+        seconds after the page). Only what is still below the screen when this runs is hidden, to rise
+        into view as it is reached; anything already on screen is left exactly as it is. */
   var reveals = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
   var layers = Array.prototype.slice.call(document.querySelectorAll('[data-depth]'));
+  var unseen = function (el) { return el.getBoundingClientRect().top > window.innerHeight; };
   if (reduce) {
-    reveals.forEach(function (el) { el.classList.add('in'); });
+    // nothing moves
   } else if (hasGsap) {
-    // GSAP drives the entrances, so the CSS reveal is switched off and its transition removed
-    reveals.forEach(function (el) { el.style.transition = 'none'; el.classList.add('in'); });
-    var kinds = document.querySelectorAll('.kinds .kind');
-    var tiles = document.querySelectorAll('.gallery figure');
-    var special = Array.prototype.slice.call(kinds).concat(Array.prototype.slice.call(tiles));
+    // GSAP drives the entrances, so the stylesheet's transition is taken off these elements
+    reveals.forEach(function (el) { el.style.transition = 'none'; });
+    var grouped = Array.prototype.slice.call(document.querySelectorAll('.kinds .kind, .gallery figure'));
     reveals.forEach(function (el) {
-      if (special.indexOf(el) !== -1) { return; }
+      if (grouped.indexOf(el) !== -1 || !unseen(el)) { return; }
       gsap.from(el, { y: 44, opacity: 0, duration: 1.1, ease: 'power3.out',
         scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
     });
-    if (kinds.length) {
-      gsap.from(kinds, lite
-        ? { y: 60, opacity: 0, stagger: 0.1, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: '.kinds', start: 'top 85%', once: true } }
-        : { y: 140, z: -300, rotationY: 70, rotationX: 18, opacity: 0, transformPerspective: 900, transformOrigin: '50% 100%',
-            stagger: 0.14, duration: 1.5, ease: 'power3.out', scrollTrigger: { trigger: '.kinds', start: 'top 82%', once: true } });
+    // Cards and tiles rise in batches, row by row as each row is reached
+    var rise = function (els, from, to) {
+      if (!els.length) { return; }
+      gsap.set(els, from);
+      ScrollTrigger.batch(els, { start: 'top 92%', once: true, onEnter: function (batch) {
+        gsap.to(batch, Object.assign({ stagger: 0.1, ease: 'power3.out' }, to));
+      } });
+    };
+    var kinds = Array.prototype.slice.call(document.querySelectorAll('.kinds .kind')).filter(unseen);
+    var tiles = Array.prototype.slice.call(document.querySelectorAll('.gallery figure')).filter(unseen);
+    if (lite) {
+      rise(kinds, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9 });
+      rise(tiles, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9 });
+    } else {
+      rise(kinds, { y: 140, z: -300, rotationY: 70, rotationX: 18, opacity: 0, transformPerspective: 900, transformOrigin: '50% 100%' },
+        { y: 0, z: 0, rotationY: 0, rotationX: 0, opacity: 1, duration: 1.5 });
+      rise(tiles, { y: 120, z: -200, rotationX: 45, opacity: 0, transformPerspective: 800, transformOrigin: '50% 100%' },
+        { y: 0, z: 0, rotationX: 0, opacity: 1, duration: 1.3 });
     }
-    document.querySelectorAll('.gallery').forEach(function (g) {
-      var figs = g.querySelectorAll('figure');
-      if (!figs.length) { return; }
-      gsap.from(figs, lite
-        ? { y: 50, opacity: 0, stagger: { each: 0.06 }, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: g, start: 'top 88%', once: true } }
-        : { y: 120, z: -200, rotationX: 45, opacity: 0, transformPerspective: 800, transformOrigin: '50% 100%',
-            stagger: { each: 0.08 }, duration: 1.3, ease: 'power3.out', scrollTrigger: { trigger: g, start: 'top 85%', once: true } });
-    });
     // Layers at their own depth, the hero handled by hand below
     layers.forEach(function (el) {
       if (el.closest('.hero')) { return; }
@@ -136,11 +142,9 @@
     }
   } else if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.remove('wait'); io.unobserve(e.target); } });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    reveals.forEach(function (el) { io.observe(el); });
-  } else {
-    reveals.forEach(function (el) { el.classList.add('in'); });
+    reveals.forEach(function (el) { if (unseen(el)) { el.classList.add('wait'); io.observe(el); } });
   }
   // Parallax without GSAP: the old way, one frame at a time
   if (!reduce && !hasGsap && layers.length) {
