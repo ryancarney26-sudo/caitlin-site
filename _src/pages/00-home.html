@@ -8,14 +8,19 @@ description: Caitlin Carney is a tattoo artist at True Colours in Preston, Lanca
     <div class="dust" aria-hidden="true"></div>
     <canvas id="brush-gl" class="brush-gl" aria-hidden="true"></canvas>
     <div class="hero-copy" data-depth="0.04">
+      <div class="name-glow" aria-hidden="true"></div>
       <h1>Caitlin Carney Tattoo</h1>
-      <svg class="stencil-line" viewBox="0 0 600 18" aria-hidden="true" preserveAspectRatio="xMinYMid meet">
-        <path class="wet" d="M2 9 C 80 4, 140 14, 220 9 S 360 3, 440 10 S 560 14, 598 8"/>
-        <path id="stencil-path" d="M2 9 C 80 4, 140 14, 220 9 S 360 3, 440 10 S 560 14, 598 8"/>
-      </svg>
-      <!-- The brush that flies in from above the page and paints the line; the script places it on the line and runs it -->
-      <div class="brush3d" id="brush" aria-hidden="true">
-        <svg class="art" viewBox="0 0 120 320">
+      <!-- The line under the name, painted in by a brush as the page opens. Pure CSS (written by
+           _src/opener.py): it starts on the first frame and waits for no script. -->
+      <div class="ink" aria-hidden="true">
+        <div class="ink-clip"><div class="ink-slide">
+          <svg class="ink-wet" viewBox="0 0 600 18" preserveAspectRatio="none"><path d="M2 9 C 80 4, 140 14, 220 9 S 360 3, 440 10 S 560 14, 598 8"/></svg>
+          <svg class="ink-line" viewBox="0 0 600 18" preserveAspectRatio="none"><path id="stencil-path" d="M2 9 C 80 4, 140 14, 220 9 S 360 3, 440 10 S 560 14, 598 8"/></svg>
+        </div></div>
+        <div class="pen-x"><div class="pen-y">
+          <div class="pen-shadow"><svg viewBox="0 0 120 320" fill="#000"><ellipse cx="60" cy="14" rx="13" ry="5"/><rect x="47" y="12" width="26" height="206" rx="13"/><rect x="45" y="212" width="30" height="52" rx="4"/><path d="M46,260 C45,292 55,310 60,318 C65,310 75,292 74,260 Z"/></svg></div>
+          <div class="pen">
+        <svg viewBox="0 0 120 320">
           <defs>
             <linearGradient id="bh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a2210"/><stop offset="0.22" stop-color="#8a5a2e"/><stop offset="0.42" stop-color="#c99461"/><stop offset="0.6" stop-color="#a26c3c"/><stop offset="1" stop-color="#2f1b0b"/></linearGradient>
             <linearGradient id="bf" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4a4a4a"/><stop offset="0.3" stop-color="#f3f3f3"/><stop offset="0.5" stop-color="#9c9c9c"/><stop offset="0.75" stop-color="#e6e6e6"/><stop offset="1" stop-color="#3c3c3c"/></linearGradient>
@@ -33,6 +38,15 @@ description: Caitlin Carney is a tattoo artist at True Colours in Preston, Lanca
           <path d="M51,290 C53,304 57,313 60,318 C63,313 67,304 69,290 C64,295 56,295 51,290 Z" fill="url(#bt)"/>
           <ellipse cx="57" cy="300" rx="2" ry="5" fill="#ffffff" opacity="0.35"/>
         </svg>
+          </div>
+        </div></div>
+        <i class="fleck" style="--dx:46px;--dy:-58px;--s:6px;--t:.75s"></i>
+        <i class="fleck" style="--dx:82px;--dy:-22px;--s:4px;--t:.6s"></i>
+        <i class="fleck" style="--dx:30px;--dy:-96px;--s:5px;--t:.85s"></i>
+        <i class="fleck" style="--dx:104px;--dy:-64px;--s:3px;--t:.7s"></i>
+        <i class="fleck" style="--dx:64px;--dy:18px;--s:4px;--t:.55s"></i>
+        <i class="fleck" style="--dx:120px;--dy:-110px;--s:5px;--t:.9s"></i>
+        <i class="fleck" style="--dx:18px;--dy:-40px;--s:3px;--t:.5s"></i>
       </div>
       <p class="tagline">Tattoo artist at True Colours, Preston. Portraits, Christian pieces and script, in black and grey or colour. Walk-ins on Tuesdays, Wednesdays and Thursdays when there's a gap.</p>
       <div class="actions">

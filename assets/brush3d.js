@@ -1,34 +1,30 @@
-/* The brush as a real object. A three.js scene sits on a canvas over the home page hero, with the
-   page itself as the floor: the brush flies in from in front of the page, lands on the line under
-   her name, paints it in step with the stroke, lifts away, then comes to rest beside the line and
-   turns to follow the pointer. Its shadow falls on the page through a shadow-only plane.
-   If WebGL is missing, motion is reduced, or this is a phone (which should not download a 690 KB
-   library for one brush), the flat brush in site.js runs instead, and the library is never fetched. */
+/* The brush as a real object, for big screens with a mouse. The opener (the brush that paints the
+   line under her name) is plain CSS and never waits for this. Once the opener has finished, this
+   brings a three.js brush down to rest beside the line, where it breathes and turns to follow the
+   pointer, lit by a violet lamp that follows the pointer too, casting its shadow on the page.
+   Phones, touch screens, reduced motion and browsers without WebGL never fetch the library. */
 const CCT = window.CCT || (window.CCT = {});
 const canvas = document.getElementById('brush-gl');
 const ink = document.getElementById('stencil-path');
+const pen = document.querySelector('.ink .pen');
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-function fallback() { CCT.glBrush = false; if (canvas) { canvas.style.display = 'none'; } if (CCT.startFlatBrush) { CCT.startFlatBrush(); } }
+function standDown() { if (canvas) { canvas.style.display = 'none'; } }
 
-if (!canvas || !ink || reduce || CCT.lite) {
-  fallback();
+if (!canvas || !ink || reduce || !fine || CCT.lite) {
+  standDown();
 } else {
-  CCT.glBrush = true;   // claimed: the flat brush stands down unless the library fails to arrive
   import('/assets/vendor/three.module.min.js')
-    .then((THREE) => { try { run(THREE); } catch (e) { fallback(); } })
-    .catch(() => fallback());
+    .then((THREE) => { try { run(THREE); } catch (e) { standDown(); } })
+    .catch(standDown);
 }
 
 function run(THREE) {
   const hero = canvas.parentElement;
   const lineSvg = ink.ownerSVGElement;
-  // Phones and touch screens get the light version: smaller shadow, no smoothing, and the scene
-  // stops rendering once the brush is at rest, since there is no pointer for it to follow
-  const lite = CCT.lite !== undefined ? CCT.lite : (!fine || window.innerWidth < 768);
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: !lite, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(lite ? 1 : Math.min(window.devicePixelRatio || 1, 1.25));
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
@@ -37,7 +33,7 @@ function run(THREE) {
   const scene = new THREE.Scene();
   const FOV = 40;
   const camera = new THREE.PerspectiveCamera(FOV, 1, 1, 6000);
-  let W = 1, H = 1, D = 1000, k = 1;
+  let W = 1, H = 1, k = 1;
 
   // The page as a floor: catches the shadow, shows nothing else
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.55 }));
@@ -50,7 +46,7 @@ function run(THREE) {
   const key = new THREE.DirectionalLight(0xfff1dc, 2.8);
   key.position.set(-500, 700, 900);
   key.castShadow = true;
-  key.shadow.mapSize.set(lite ? 512 : 1024, lite ? 512 : 1024);
+  key.shadow.mapSize.set(1024, 1024);
   key.shadow.radius = 4;
   key.shadow.bias = -0.0005;
   scene.add(key);
@@ -71,7 +67,7 @@ function run(THREE) {
   const hair = new THREE.MeshStandardMaterial({ color: 0xe6dcc6, roughness: 0.92, metalness: 0 });
   const inkMat = new THREE.MeshStandardMaterial({ color: 0x9a7fd1, roughness: 0.35, metalness: 0.05 });
   const capMat = new THREE.MeshStandardMaterial({ color: 0x2f1b0b, roughness: 0.5 });
-  [wood, steel, dark, hair, inkMat, capMat].forEach(m => { m.transparent = true; mats.push(m); });
+  [wood, steel, dark, hair, inkMat, capMat].forEach(m => { m.transparent = true; m.opacity = 0; mats.push(m); });
   const add = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.castShadow = true; brush.add(m); return m; };
   add(new THREE.CylinderGeometry(8, 12.5, 190, 28), wood, 110 + 95);
   add(new THREE.SphereGeometry(8, 20, 12), capMat, 300);
@@ -84,18 +80,17 @@ function run(THREE) {
   add(new THREE.LatheGeometry(tipPts, 36), inkMat, 0.2);
   scene.add(brush);
 
-  // Where the line is, in page pixels relative to the hero, and the same in world units
+  // Where the end of the line is, and where the brush rests beside it. The line is a 600 by 18
+  // drawing stretched to the line's box, so its units map straight onto that box.
   const L = ink.getTotalLength();
-  let s = 1, lineLeft = 0, lineTop = 0;
+  let end = new THREE.Vector3(), restPos = new THREE.Vector3(), restZ = -1.15;
   const toWorld = (px, py) => new THREE.Vector3(px - W / 2, H / 2 - py, 0);
-  const pointAt = (t) => { const p = ink.getPointAtLength(t * L); return toWorld(lineLeft + p.x * s, lineTop + p.y * s); };
 
   function resize() {
     W = hero.clientWidth; H = hero.clientHeight;
     renderer.setSize(W, H, false);
     camera.aspect = W / H;
-    D = (H / 2) / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
-    camera.position.set(0, 0, D);
+    camera.position.set(0, 0, (H / 2) / Math.tan(THREE.MathUtils.degToRad(FOV / 2)));
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
     floor.scale.set(W * 3, H * 3, 1);
@@ -103,112 +98,40 @@ function run(THREE) {
     sc.left = -W; sc.right = W; sc.top = H; sc.bottom = -H; sc.near = 1; sc.far = 4000;
     sc.updateProjectionMatrix();
     const r = lineSvg.getBoundingClientRect(), hr = hero.getBoundingClientRect();
-    s = r.width / 600;
-    lineLeft = r.left - hr.left;
-    lineTop = r.top - hr.top + (r.height - 18 * s) / 2;
-    // The brush is sized from the line it paints: about two thirds of the line's length, tip to cap
+    const p = ink.getPointAtLength(L);
+    end = toWorld(r.left - hr.left + p.x * r.width / 600, r.top - hr.top + p.y * r.height / 18);
     k = Math.max(170, Math.min(420, r.width * 0.62)) / 300;
     brush.scale.setScalar(k);
+    // Rest beside the end of the line, handle to the right if there is room, else standing up
+    const room = (end.x + W / 2) + 320 * k < W;
+    restPos = new THREE.Vector3(room ? end.x + 90 * k : end.x - 12 * k, room ? end.y - 26 * k : end.y - 6 * k, 0);
+    restZ = room ? -1.15 : 0.38;
   }
   resize();
   window.addEventListener('resize', resize);
 
-  // Easing to match the stroke's CSS ease-out, plus a couple of others
-  const bez = (x1, y1, x2, y2) => (x) => {
-    let lo = 0, hi = 1, t = x;
-    for (let i = 0; i < 24; i++) { const cx = 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t; if (cx < x) { lo = t; } else { hi = t; } t = (lo + hi) / 2; }
-    return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t;
-  };
-  const easeOut = bez(0, 0, 0.58, 1), swoop = bez(0.2, 0.8, 0.2, 1), easeInOut = bez(0.45, 0, 0.55, 1), easeIn = bez(0.4, 0, 0.9, 0.5);
+  const easeInOut = (x) => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   const lerp = (a, b, t) => a + (b - a) * t;
+  const setOpacity = (o) => { mats.forEach(m => { m.opacity = o; }); };
 
-  // One clock for everything. It starts the moment this script is ready, and the line follows the
-  // brush: the stylesheet's own stroke animation is switched off and the dash offset is set by hand
-  // every frame, so the two can never drift apart however long the library took to arrive.
-  const DASH = 598;
-  const wet = lineSvg.querySelector('path.wet');
-  [ink, wet].forEach(p => { if (p) { p.style.animation = 'none'; p.style.strokeDashoffset = DASH; } });
-  const t0 = 0;
-  const clockStart = performance.now() / 1000;
-  if (CCT.lightName) { CCT.lightName(0); }
-  let strokeDone = false;
-  const setStroke = (u) => {
-    const off = (DASH * (1 - u)).toFixed(1);
-    ink.style.strokeDashoffset = off;
-    if (wet) { wet.style.strokeDashoffset = off; }
-  };
-  const REST = { x: 0, y: 0 };
-  const base = { rx: 0.55, ry: 0, rz: -0.5 };
+  let settleAt = null, phase = 'wait';
   let pointer = { x: 0, y: 0, has: false };
-  let phase = 'wait', done = false;
-  let flecked = false, lit = false;
-  const start = pointAt(0), end = pointAt(1);
-  // It comes to rest beside the end of the line, handle pointing right if there is room, else left
-  const room = (end.x + W / 2) + 320 * k < W;
-  const restPos = new THREE.Vector3(room ? end.x + 90 * k : end.x - 12 * k, room ? end.y - 26 * k : end.y - 6 * k, 0);
-  const restZ = room ? -1.15 : 0.38;
-
-  function setOpacity(o) { mats.forEach(m => { m.opacity = o; }); }
 
   function update(now) {
-    const t = now / 1000 - clockStart;
+    const t = now / 1000 - settleAt;
     const p = brush.position, r = brush.rotation;
-    if (t < 0.3) { phase = 'wait'; setOpacity(0); return; }
-    if (t < 1.1) {
-      phase = 'swoop';
-      const u = swoop((t - 0.3) / 0.8);
-      setOpacity(Math.min(1, u * 2));
-      p.set(lerp(start.x + W * 0.38, start.x, u), lerp(start.y + H * 0.75, start.y, u), lerp(1050, 0, u));
-      r.set(lerp(1.5, base.rx, u), lerp(1.3, base.ry, u), lerp(0.9, base.rz, u));
-      if (u > 0.9) { const dab = 1 - (u - 0.9) * 6; brush.scale.setScalar(k * (1 - 0.04 * Math.max(0, dab))); }
-      if (!lit && t > 1.0 && CCT.lightName) { lit = true; CCT.lightName(t0 * 1000); }
-      return;
-    }
-    if (t < 2.7) {
-      phase = 'paint';
-      const u = easeOut((t - 1.1) / 1.6);
-      const at = pointAt(u);
-      const wob = Math.sin(u * Math.PI * 3) * 0.05;
-      p.set(at.x, at.y, 0);
-      r.set(base.rx - wob * 0.6, base.ry, base.rz + wob);
-      brush.scale.setScalar(k);
-      setOpacity(1);
-      setStroke(u);
-      return;
-    }
-    if (!strokeDone) { strokeDone = true; setStroke(1); }
-    // The wet paint dries once the brush has passed
-    if (wet && t < 4.3) {
-      const v = Math.max(0, Math.min(1, (t - 2.8) / 1.4));
-      wet.style.opacity = (0.32 * (1 - easeOut(v))).toFixed(3);
-      wet.style.strokeWidth = (12 - 7 * v).toFixed(1) + 'px';
-    }
-    if (t < 3.45) {
-      phase = 'lift';
-      const u = easeIn((t - 2.7) / 0.75);
-      p.set(lerp(end.x, end.x + 160 * k, u), lerp(end.y, end.y + 220 * k, u), lerp(0, 520, u));
-      r.set(lerp(base.rx, 1.1, u), lerp(base.ry, -0.8, u), lerp(base.rz, 0.1, u));
-      if (!flecked && CCT.flecks) {
-        flecked = true;
-        const host = document.querySelector('.hero-copy');
-        if (host) {
-          const hr2 = host.getBoundingClientRect(), hh = hero.getBoundingClientRect();
-          const lr = lineSvg.getBoundingClientRect();
-          CCT.flecks(host, lr.left - hr2.left + 598 * s, lr.top - hr2.top + (lr.height - 18 * s) / 2 + 8 * s, 2680);
-        }
-      }
-      return;
-    }
-    if (t < 4.3) {
+    if (t < 0.9) {
+      // Down from up and to the right, where the painting brush lifted away, to rest by the line
       phase = 'settle';
-      const u = easeInOut((t - 3.45) / 0.85);
-      const from = { x: end.x + 160 * k, y: end.y + 220 * k, z: 520 };
-      p.set(lerp(from.x, restPos.x, u), lerp(from.y, restPos.y, u), lerp(from.z, 0, u));
+      const u = easeInOut(Math.max(0, t) / 0.9);
+      setOpacity(Math.min(1, u * 1.8));
+      p.set(lerp(end.x + 130 * k, restPos.x, u), lerp(end.y + 230 * k, restPos.y, u), lerp(420, 0, u));
       r.set(lerp(1.1, 0.35, u), lerp(-0.8, 0, u), lerp(0.1, restZ, u));
       return;
     }
-    // At rest: a slow breath, and it turns towards the pointer
+    // At rest: a slow breath, and it turns towards the pointer; it lifts when the pointer comes close
     phase = 'rest';
+    setOpacity(1);
     const breathe = Math.sin(t * 1.3) * 3 * k;
     let tx = 0, ty = 0, lift = 0;
     if (pointer.has) {
@@ -224,36 +147,32 @@ function run(THREE) {
     r.z = lerp(r.z, restZ + ty * 0.15, 0.06);
   }
 
-  // The lamp follows the pointer; so does the brush's attention
-  if (fine) {
-    document.addEventListener('mousemove', (e) => {
-      const hr = hero.getBoundingClientRect();
-      pointer = { x: e.clientX - hr.left, y: e.clientY - hr.top, has: true };
-      lamp.position.set(pointer.x - W / 2, H / 2 - pointer.y, 420);
-    });
-  }
+  document.addEventListener('mousemove', (e) => {
+    const hr = hero.getBoundingClientRect();
+    pointer = { x: e.clientX - hr.left, y: e.clientY - hr.top, has: true };
+    lamp.position.set(pointer.x - W / 2, H / 2 - pointer.y, 420);
+  });
 
-  // Render only while the hero is on screen
-  let visible = true;
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (visible) { requestAnimationFrame(frame); } }, { threshold: 0 }).observe(hero);
-  }
-  // At rest it only needs half the frames; while it moves it gets them all
-  let last = 0, restFrames = 0;
+  // Render only once the opener is done, and only while the hero is on screen; at rest, half rate
+  let visible = true, last = 0, running = false;
   function frame(now) {
-    if (!visible) { return; }
-    if (phase === 'rest') {
-      if (lite) {
-        // Nothing to follow on a touch screen: settle, draw a last frame or two, and stop
-        if (restFrames++ > 2) { return; }
-      } else if (now - last < 30) { requestAnimationFrame(frame); return; }
-    }
+    if (!visible) { running = false; return; }
+    running = true;
     requestAnimationFrame(frame);
+    if (phase === 'rest' && now - last < 30) { return; }
     last = now;
     update(now);
     renderer.render(scene, camera);
   }
-  requestAnimationFrame(frame);
+  const go = () => { if (settleAt !== null && visible && !running) { requestAnimationFrame(frame); } };
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; go(); }, { threshold: 0 }).observe(hero);
+  }
+  const anims = pen && pen.getAnimations ? pen.getAnimations() : [];
+  Promise.all(anims.map(a => a.finished.catch(() => null))).then(() => {
+    settleAt = performance.now() / 1000;
+    go();
+  });
 
   // A turned wooden handle, drawn once
   function woodTexture() {
