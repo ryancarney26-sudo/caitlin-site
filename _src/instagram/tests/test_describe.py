@@ -70,6 +70,31 @@ def test_parse_rejects_a_bad_caption_for_good(caption):
     assert not e.value.retry
 
 
+@pytest.mark.parametrize("caption,secret", [
+    ("Script tattoo of the name Olivia " + " ".join(["word"] * 20), "Olivia"),     # too long
+    ("Olivia script", "Olivia"),                                                  # too short
+    ("Snake tattoo for Olivia #tattoo", "Olivia"),                                # breaks the hashtag rule
+])
+def test_a_rejected_caption_is_never_quoted_in_the_reason(caption, secret):
+    """The reason is stored in state.json and printed in the run log, and the repository is public.
+    A rejected caption may be the very one that spells out a client's name."""
+    with pytest.raises(DescribeError) as e:
+        parse_response(reply({**TATTOO, "caption": caption}))
+    assert secret not in str(e.value)
+
+
+def test_the_instructions_keep_a_name_a_date_and_a_birth_weight_out_of_the_caption():
+    """A name, a date or a birth weight in a tattoo belongs to the person wearing it, and a caption
+    is public text. So Claude is told to say "a name" or "a date" and never to copy the real one."""
+    system = build_request(JPEG, None)["system"]
+    assert "Never copy it into the caption" in system
+    assert all(phrase in system for phrase in ('"a name"', '"a date"', '"a birth weight"'))
+
+
+def test_the_instructions_ask_for_no_religious_wording_of_claudes_own():
+    assert "Add no religious wording of your own" in build_request(JPEG, None)["system"]
+
+
 def test_parse_refusal_is_final():
     with pytest.raises(DescribeError) as e:
         parse_response(reply(TATTOO, stop_reason="refusal"))

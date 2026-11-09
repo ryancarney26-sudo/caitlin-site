@@ -58,12 +58,22 @@ If it is a finished tattoo, write one plain line of 4 to 16 words in British Eng
 tattoo shows, its style (black and grey, colour, fine line, linework, script) and where on the body \
 it sits, when the photo shows that clearly. Leave the body part out rather than guess it. No praise, \
 no opinions, no claims about the client or what the tattoo means, no hashtags, no @names, no emoji, \
-no full stop. Match the site's existing captions:
+no full stop.
+
+A name, a date or a birth weight written in a tattoo belongs to the person wearing it. Never copy \
+it into the caption: say "a name", "a date" or "a birth weight" instead. Words that are not \
+personal, such as a quote or a single word, may be given as they read.
+
+Add no religious wording of your own: no verse text, no blessing, no devotional phrase. A scripture \
+reference that can be read clearly in the tattoo, such as Philippians 4:13, may be named.
+
+Match the site's existing captions:
 - Medusa tattoo with snakes and a crescent moon, black and grey, upper arm
 - Colour tattoo of a robin and a monarch butterfly on a branch
 - Portrait tattoo of a father and his baby, black and grey, on the forearm
 - Small black and grey butterfly tattoo on the arm
 - Crowned crow tattoo on the back of the neck
+- Script name tattoo with a crown and a date, black and grey, on the inner forearm
 
 Kinds, any that apply: portrait (a realistic face of a person, pet or character), christian \
 (crosses, Jesus, Mary, angels, saints, scripture, rosaries, praying hands), script (lettering is the \
@@ -129,13 +139,15 @@ def parse_response(response):
         raise DescribeError("Claude's answer could not be read", retry=False) from None
     if not data.get("finished_tattoo"):
         return Description(False, "", [])
+    # The reasons below never quote the caption: they are stored in state.json and printed in the
+    # run log, the repository is public, and a rejected caption may be the one that holds a name.
     raw = data.get("caption") or ""
     if "#" in raw or "@" in raw:
-        raise DescribeError(f"Claude's caption broke the rules: {raw!r}", retry=False)
+        raise DescribeError("Claude's caption broke the rules: it held a hashtag or an @name", retry=False)
     caption = tidy(raw)
     words = [w for w in caption.split() if any(ch.isalnum() for ch in w)]
     if not MIN_WORDS <= len(words) <= MAX_WORDS:
-        raise DescribeError(f"Claude's caption was the wrong length: {raw!r}", retry=False)
+        raise DescribeError(f"Claude's caption was the wrong length: {len(words)} words", retry=False)
     return Description(True, caption, [k for k in data.get("kinds", []) if k in KINDS])
 
 

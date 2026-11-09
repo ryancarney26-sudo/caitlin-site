@@ -111,6 +111,14 @@ it under 400 KB, and strips every scrap of metadata. Then it picks the caption:
   finished tattoo, writes one plain line, and picks the subject pages. A post that isn't a finished
   tattoo is kept off and remembered in `state.json`, so Claude is never asked twice about it.
   About 2p a photo. At most 10 look-ups a run (`max_claude_per_run` in `rules.json`).
+  Two privacy rules in its instructions: never copy a name, a date or a birth weight out of a
+  tattoo (the caption says "a name", "a date" or "a birth weight"), and add no religious wording
+  of its own. **Nothing checks the caption after Claude writes it.** If Claude ever breaks the
+  first rule, the name or date is published as written, so look at the caption of any photo that
+  has lettering in it. A net under the rule was drafted on 9 November 2026 and kept out: two
+  rounds of review each found captions it garbled or wrongly kept off. When a caption is turned
+  away (a hashtag, the wrong length), the reason it stores never quotes the caption, because
+  `state.json` and the run log are public. Her own line is never filtered.
 
 It adds the photo to the top of "Recent work" on the home page (the oldest drops off after twelve)
 and to its subject pages, rebuilds with `--final`, commits to `main`, and GitHub Pages publishes.
