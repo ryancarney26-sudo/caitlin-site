@@ -39,6 +39,15 @@ STUDIO_ID = "https://www.truecolourstattoo.co.uk/#studio"
 PERSON_ID = SITE + "/#caitlin"
 WEBSITE_ID = SITE + "/#website"
 
+# The studio's booking form has no place to choose Caitlin (checked 9 Nov 2026: its artist list is
+# five other names). So every row of buttons that leads to it is followed by one line saying how to
+# make the enquiry reach her. Take the tip out once the studio's form lists her.
+STUDIO_FORM = "https://www.truecolourstattoo.co.uk/quotation-booking-request"
+FORM_TIP = ('<p class="form-tip">The booking form belongs to the studio. Start its Tattoo description box '
+            "with &ldquo;For Caitlin Carney&rdquo;, so they know it's for me.</p>")
+ACTIONS_RE = re.compile(r'^([ \t]*)<div class="actions">(?:(?!</div>).)*?' + re.escape(STUDIO_FORM) + r".*?</div>",
+                        re.S | re.M)
+
 STUDIO = {
     "@type": "TattooParlor",
     "@id": STUDIO_ID,
@@ -149,6 +158,11 @@ def head_art(body, meta):
         lambda m: '<div class="page-head has-art">\n    <div class="head-copy">'
                   + m.group(2) + "\n    </div>" + fig + m.group(3),
         body, count=1)
+
+
+def form_tip(body):
+    """Put the "For Caitlin Carney" tip under each row of buttons that leads to the studio's form."""
+    return ACTIONS_RE.sub(lambda m: m.group(0) + "\n" + m.group(1) + FORM_TIP, body)
 
 
 def esc(s):
@@ -386,6 +400,7 @@ def build():
                 k, v = line.split(":", 1)
                 meta[k.strip()] = v.strip()
         body = text[m.end():]
+        body = form_tip(body)
         body = PHOTO_RE.sub(photo, body)
         body = ARCH_RE.sub(arch, body)
         body = head_art(body, meta)
@@ -394,10 +409,14 @@ def build():
         home = path == "/"
         if not home:
             # Inner pages: the photo section sits on a panel, and every section rises into view.
+            # A section that links jump to (it has an id) keeps still: one that rose after the browser
+            # had jumped to it would end up above where the jump landed, its heading under the header.
+            # What is inside it rises instead, written in the page as <div class="reveal">.
             body = body.replace('<section aria-labelledby="photos-h">',
                                 '<section class="panel" aria-labelledby="photos-h">')
-            body = re.sub(r'<section class="', '<section class="reveal ', body)
-            body = re.sub(r'<section(?= [^>]*aria-labelledby)(?![^>]*class=)', '<section class="reveal"', body)
+            body = re.sub(r'<section(?![^>]*\sid=) class="', '<section class="reveal ', body)
+            body = re.sub(r'<section(?= [^>]*aria-labelledby)(?![^>]*class=)(?![^>]*\sid=)',
+                          '<section class="reveal"', body)
 
         slots = re.findall(r"\[[^\]]{2,}\]", body + meta["title"] + meta["description"])
         blanks[path] = slots
@@ -423,8 +442,11 @@ def build():
                 .replace("{{cur_work}}", "")
                 .replace("{{cur_prices}}", ' aria-current="page"' if path == "/prices/" else "")
                 .replace("{{cur_about}}", ' aria-current="page"' if path == "/about/" else "")
-                .replace("{{float_href}}", "#book" if home else "tel:+441772378565" if path == "/walk-in-tattoos/" else "https://www.truecolourstattoo.co.uk/quotation-booking-request")
-                .replace("{{float_label}}", "Ring the studio" if path == "/walk-in-tattoos/" else "Tell me your idea" if home else "Get a quote")
+                # The floating button has no room for the tip beside it, so it leads to her own
+                # booking steps (where the tip is), never straight to the studio's form.
+                .replace("{{float_href}}", "#book" if home or path == "/prices/" else "tel:+441772378565" if path == "/walk-in-tattoos/" else "/prices/#book")
+                # Not "Get a quote": that name belongs to the button that opens the studio's form
+                .replace("{{float_label}}", "Ring the studio" if path == "/walk-in-tattoos/" else "Tell me your idea" if home else "How to book")
                 .replace("{{home_scripts}}", '  <script type="module" src="/assets/brush3d.js"></script>' if home else "")
                 .replace("{{body}}", body.rstrip())
                 .replace("{{strip}}", "" if home else strip(path)))

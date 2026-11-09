@@ -189,6 +189,8 @@ a:hover { color: var(--bone); }
 }
 
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+/* The line under a studio-form button that says how to make the enquiry reach Caitlin */
+.form-tip { color: var(--muted); font-size: 0.95rem; line-height: 1.5; max-width: 40ch; margin: 0.9rem 0 0; }
 .btn {
   display: inline-block; padding: 0.85rem 1.5rem; font-weight: 700; text-decoration: none;
   border: 2px solid var(--bone); color: var(--bone); background: rgba(12,10,15,0.4);
@@ -503,6 +505,13 @@ html.lenis, html.lenis body { height: auto; }
 .reasons > div::before { content: ""; position: absolute; top: -1px; left: 0; width: 3.5rem; height: 1px; background: var(--violet); box-shadow: 0 0 10px rgba(154,127,209,0.9); }
 .reasons h3 { font-family: var(--quote); font-weight: 500; font-size: 1.55rem; line-height: 1.2; margin: 0 0 0.5rem; color: var(--bone); }
 .reasons p { margin: 0; color: var(--muted); max-width: 46ch; }
+
+/* A link that jumps to the booking steps (How to book, Tell me your idea, Booking in the header) must
+   land them clear of the header, which stays stuck to the top and is up to 118px tall on a narrow
+   phone. The rest of the room is for late fonts: when they arrive, the text above can shrink and
+   pull the steps up by about 50px after the jump. */
+#book { scroll-margin-top: 4rem; }
+@media (max-width: 47.99rem) { #book { scroll-margin-top: 9rem; } }
 
 /* On phones, a way to book that stays in reach once the first screen is scrolled past */
 .book-float { display: none; }

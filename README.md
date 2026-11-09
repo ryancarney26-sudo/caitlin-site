@@ -59,6 +59,27 @@ Portrait crops (4:5) suit the gallery best, but any shape works.
 - `google42e6e428d1cd23fe.html` is Google Search Console's proof that we own the site. Leave it alone too.
 - `instagram-connect/` is the page Instagram sends Caitlin to when she connects. Leave it alone.
 
+### Booking buttons
+
+The studio's booking form has no place to choose Caitlin (checked 9 November 2026). So:
+
+- The build puts one line under every row of buttons that leads to that form: start the Tattoo
+  description box with "For Caitlin Carney". The wording is `FORM_TIP` in `_src/make.py`.
+  **Take it out once the studio's form lists her.**
+- The floating button on phones leads to her own booking steps, never straight to the studio's
+  form: there is no room beside it for that line. On most pages it is called "How to book" and
+  goes to `/prices/#book`. On the home page it is "Tell me your idea" (`#book`). On the walk-in
+  page it is "Ring the studio" and dials the studio.
+- A jump to the booking steps (`#book`, on the home page and the prices page) must land their
+  heading below the header, which stays stuck to the top of the screen. Two things keep it there.
+  `assets/site.css` keeps room above the steps (`scroll-margin-top`). And the section itself keeps
+  still while what is inside it rises (`<div class="reveal">`): a section that rose after the jump
+  would end up under the header. The build never moves a section that has an `id`.
+- A "Message me on Instagram" button carries `data-ig-chat`. In the page it links to her profile.
+  A small script in `_src/template.html` swaps it, on phones and tablets only, for the link that
+  opens the chat in the Instagram app (`ig.me` links do not work on Instagram's website).
+  Nobody has tried this on a real phone yet.
+
 ## New photos from Instagram
 
 ### Putting a tattoo on the site (for Caitlin)
