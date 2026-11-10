@@ -532,6 +532,32 @@ def test_a_final_claude_failure_is_remembered(repo_copy, fixture_images):
     assert cut_off.calls.count(F["caption"]) == 1
 
 
+def test_a_name_claude_copies_from_a_tattoo_reaches_no_page_record_or_message(repo_copy, fixture_images):
+    """The whole path, with describe.py's own check and no stand-in for it. Claude lists the name it
+    can read in the tattoo, then slips and writes it into the caption. The photo stays off, and the
+    name is in no page, no record in state.json, no skip reason, no commit message and no email."""
+    from types import SimpleNamespace
+
+    from describe import parse_response
+
+    slipped = {"finished_tattoo": True, "private_details": ["Olivia"],
+               "caption": "Script tattoo of the name Olivia on the wrist", "kinds": ["script"]}
+    no_tattoo = {"finished_tattoo": False, "private_details": [], "caption": "", "kinds": []}
+    answers = {F["caption"]: slipped, G["caption"]: no_tattoo, MEDIA[1]["caption"]: no_tattoo}
+
+    def describer(jpeg, caption):
+        text = SimpleNamespace(type="text", text=json.dumps(answers[caption]))
+        return parse_response(SimpleNamespace(stop_reason="end_turn", content=[text]))
+
+    rep, state, mailer, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=describer)
+    assert state["posts"]["f"]["status"] == "skipped"
+    pages = "".join(p.read_text(encoding="utf-8") for p in (repo_copy / "_src" / "pages").glob("*.html"))
+    public = pages + json.dumps(state) + repr(rep.skipped) + repr(rep.notes) + rep.commit_message + repr(mailer.sent)
+    assert "Olivia" not in public
+    _, _, mailer, _ = go(repo_copy, fixture_images, media=MEDIA2, state=state, now=SUNDAY_EVENING, describer=describer)
+    assert F["permalink"] in mailer.sent[-1][1] and "Olivia" not in repr(mailer.sent)     # Sunday's list names the post, not the name
+
+
 def test_kept_off_posts_are_in_the_sunday_list(repo_copy, fixture_images):
     _, state, _, _ = go(repo_copy, fixture_images, media=MEDIA2, describer=FakeDescriber(ANSWERS))
     _, state, mailer, _ = go(repo_copy, fixture_images, media=MEDIA2, state=state, now=SUNDAY_EVENING,

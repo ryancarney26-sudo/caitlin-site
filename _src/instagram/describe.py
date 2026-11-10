@@ -12,7 +12,9 @@ import base64
 import json
 import os
 import pathlib
+import re
 import sys
+import unicodedata
 from dataclasses import dataclass, field
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -37,10 +39,12 @@ SCHEMA = {
     "type": "object",
     "properties": {
         "finished_tattoo": {"type": "boolean"},
+        # Before the caption, so the details are in front of Claude when it writes the line that must not hold them
+        "private_details": {"type": "array", "items": {"type": "string"}},
         "caption": {"type": "string"},
         "kinds": {"type": "array", "items": {"type": "string", "enum": list(KINDS)}},
     },
-    "required": ["finished_tattoo", "caption", "kinds"],
+    "required": ["finished_tattoo", "private_details", "caption", "kinds"],
     "additionalProperties": False,
 }
 
@@ -62,7 +66,19 @@ no full stop.
 
 A name, a date or a birth weight written in a tattoo belongs to the person wearing it. Never copy \
 it into the caption: say "a name", "a date" or "a birth weight" instead. Words that are not \
-personal, such as a quote or a single word, may be given as they read.
+personal, such as a quote or an ordinary word like Love or Blessed, may be given as they read.
+
+Put each such name, date and birth weight in private_details instead, exactly as it is written in \
+the tattoo, one to an item and with no other word around it: "Olivia", not "Baby Olivia"; \
+"12.03.2019", not "Born 12.03.2019"; "7lb 6oz", not "Weight 7lb 6oz". A year on its own, a time of \
+birth and a person's initials count as well. If a name is not in English letters, or a date is in \
+Roman numerals, list it twice: as written, and in English letters or in figures.
+
+Whatever you list must stay out of the caption: a caption that holds a listed item is thrown \
+away. So list only what you have left out. Mum, Dad and Nan are not names: write them, and do not \
+list them. Nor is the name of a saint, a famous person, a character, a team, a band or a place. \
+That list is never published. Leave it empty when the tattoo holds none, and put nothing else in \
+it: no quote, no scripture reference, no ordinary word.
 
 Add no religious wording of your own: no verse text, no blessing, no devotional phrase. A scripture \
 reference that can be read clearly in the tattoo, such as Philippians 4:13, may be named.
@@ -79,8 +95,106 @@ Kinds, any that apply: portrait (a realistic face of a person, pet or character)
 (crosses, Jesus, Mary, angels, saints, scripture, rosaries, praying hands), script (lettering is the \
 main subject), small (a small piece, or a design from her flash; her caption may say "flash").
 
-If it is not a finished tattoo, set finished_tattoo to false, caption to an empty string and kinds \
-to an empty list."""
+If it is not a finished tattoo, set finished_tattoo to false, private_details to an empty list, \
+caption to an empty string and kinds to an empty list."""
+
+
+# The check under the privacy rule above: ask, don't guess. Claude lists the private details it can
+# read in the tattoo, and a caption that holds any of them keeps the photo off. Nothing is reworded,
+# so nothing can be garbled, and no word is taken for a name because of its shape. The list is used
+# in parse_response and dropped there: it is never stored, printed or put in an error message,
+# because state.json, the run log and the commit message are all public.
+MAX_DETAILS, MAX_DETAIL_LENGTH = 50, 100       # far more than any tattoo holds: a longer list is a broken answer
+_NEVER_NAMES = {"and", "the", "of"}
+# These join the parts of a surname ("Ana de la Cruz"). Alone they are names: Della, Di, Van.
+_JOINERS = {"van", "von", "der", "den", "de", "del", "della", "di", "da", "du", "la", "le", "el", "bin", "ap"}
+# Words that sit beside a date or a weight, in a tattoo and in an honest caption alike. In an item
+# that holds a figure they are labels, not names: "Born on 12.03.2019", "Sunrise 12.03.1950".
+_LABELS = {"name", "names", "date", "dates", "dob", "born", "birth", "died", "death", "weight", "time", "length",
+           "sunrise", "sunset", "est", "since", "on", "in", "at", "to", "from", "until", "age", "aged",
+           "january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+           "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec"}
+_UNITS = {"lb": "lb", "lbs": "lb", "pound": "lb", "pounds": "lb", "oz": "oz", "ozs": "oz", "ounce": "oz",
+          "ounces": "oz", "kg": "kg", "kgs": "kg", "kilo": "kg", "kilos": "kg", "kilogram": "kg", "kilograms": "kg"}
+_AFTER_A_FIGURE = set(_UNITS.values()) | {"st", "nd", "rd", "th", "am", "pm", "cm", "mm", "g"}     # 1st, 10am, 52cm
+
+
+def _plain(text):
+    """Lower case with the accents off, so that ZOË, Zoë and Zoe are one name."""
+    stripped = "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch))
+    return stripped.casefold()
+
+
+def _runs(text):
+    """The text as runs of letters and runs of figures, in order: "7lb 6oz" -> 7, lb, 6, oz.
+    A mark that belongs to a letter stays in its word, so a name in Hindi is one run."""
+    runs, kind = [], None
+    for ch in _plain(text):
+        category = unicodedata.category(ch)
+        now = "word" if category[0] in "LM" else "figure" if category == "Nd" else None
+        if now and now == kind:
+            runs[-1] += ch
+        elif now:
+            runs.append(ch)
+        kind = now
+    return runs
+
+
+def _same_form(runs):
+    """Figures without leading noughts (03 is 3), and a unit after a figure in one spelling (lbs is lb)."""
+    out = []
+    for i, run in enumerate(runs):
+        if run.isdigit():
+            out.append(run.lstrip("0") or "0")
+        elif i and runs[i - 1].isdigit():
+            out.append(_UNITS.get(run, run))
+        else:
+            out.append(run)
+    return out
+
+
+def _side_by_side(part, whole):
+    return any(whole[i:i + len(part)] == part for i in range(len(whole) - len(part) + 1))
+
+
+def holds_private_detail(caption, details):
+    """True when the caption holds one of the names, dates or weights Claude read in the tattoo.
+
+    Caption and item are split into runs of letters and runs of figures, so the marks and spaces
+    between them never matter and a figure next door cannot hide a match.
+    - A name counts when one of its words is a whole word of the caption: Ann is not in "banner".
+    - A date or a weight counts when its runs stand side by side in the caption, when its figures
+      appear as one number (12032019), or when its year appears (12.03.2019 in "12 March 2019").
+    - Initials count side by side (J.M.), and spaced letters count as the word they spell."""
+    written = _runs(caption)
+    runs = _same_form(written)
+    words = {run for run in runs if not run.isdigit()}
+    numbers = {run for run in runs if run.isdigit()}
+    for detail in details:
+        item_written = _runs(detail)
+        item = _same_form(item_written)
+        figures = [i for i, run in enumerate(item) if run.isdigit()]
+        names = [run for i, run in enumerate(item)
+                 if not run.isdigit() and len(run) > 1 and run not in _NEVER_NAMES
+                 and not (figures and run in _LABELS)
+                 and not (i and item[i - 1].isdigit() and run in _AFTER_A_FIGURE)]
+        if any(name in words for name in ([n for n in names if n not in _JOINERS] or names)):
+            return True
+        if figures:
+            end = figures[-1] + 1
+            if end < len(item) and item[end] in _AFTER_A_FIGURE:
+                end += 1
+            core = item[figures[0]:end]                       # the item without the labels around it
+            if (len(core) > 1 or len(core[0]) > 1) and _side_by_side(core, runs):
+                return True
+            glued = "".join(item_written[i] for i in figures)
+            if len(figures) > 1 and len(glued) >= 6 and glued in written:      # a date run together, not 7lb 6oz as 76
+                return True
+            if any(len(item[i]) == 4 and item[i][0] in "12" and item[i] in numbers for i in figures):
+                return True
+        elif len(item) > 1 and (_side_by_side(item, runs) or "".join(item) in words):
+            return True
+    return False
 
 
 @dataclass
@@ -142,9 +256,17 @@ def parse_response(response):
     # The reasons below never quote the caption: they are stored in state.json and printed in the
     # run log, the repository is public, and a rejected caption may be the one that holds a name.
     raw = data.get("caption") or ""
+    private = data.get("private_details")
+    kinds = data.get("kinds", [])
+    if (not isinstance(raw, str) or not isinstance(kinds, list) or not isinstance(private, list)
+            or len(private) > MAX_DETAILS
+            or not all(isinstance(detail, str) and len(detail) <= MAX_DETAIL_LENGTH for detail in private)):
+        raise DescribeError("Claude's answer could not be read", retry=False)      # no list, no check: never publish unchecked
     if "#" in raw or "@" in raw:
         raise DescribeError("Claude's caption broke the rules: it held a hashtag or an @name", retry=False)
     caption = tidy(raw)
+    if holds_private_detail(raw, private) or holds_private_detail(caption, private):
+        raise DescribeError("Claude's caption held a private detail from the tattoo", retry=False)
     words = [w for w in caption.split() if any(ch.isalnum() for ch in w)]
     if not MIN_WORDS <= len(words) <= MAX_WORDS:
         raise DescribeError(f"Claude's caption was the wrong length: {len(words)} words", retry=False)

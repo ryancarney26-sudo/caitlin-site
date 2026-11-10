@@ -113,12 +113,24 @@ it under 400 KB, and strips every scrap of metadata. Then it picks the caption:
   About 2p a photo. At most 10 look-ups a run (`max_claude_per_run` in `rules.json`).
   Two privacy rules in its instructions: never copy a name, a date or a birth weight out of a
   tattoo (the caption says "a name", "a date" or "a birth weight"), and add no religious wording
-  of its own. **Nothing checks the caption after Claude writes it.** If Claude ever breaks the
-  first rule, the name or date is published as written, so look at the caption of any photo that
-  has lettering in it. A net under the rule was drafted on 9 November 2026 and kept out: two
-  rounds of review each found captions it garbled or wrongly kept off. When a caption is turned
-  away (a hashtag, the wrong length), the reason it stores never quotes the caption, because
-  `state.json` and the run log are public. Her own line is never filtered.
+  of its own. Under the first rule sits a check that asks instead of guessing:
+  - Claude also lists the private details it can read in the tattoo (`private_details`).
+  - A caption that holds any of them keeps the photo off. Nothing is reworded.
+  - A name counts when one of its words is a whole word of the caption, whatever its capitals or
+    accents. A date or a weight counts when its figures stand side by side in the caption, whatever
+    marks sit between them, or when its year appears. "lbs" and "pounds" count as "lb".
+  - Claude is told to list each item bare ("12.03.2019", not "Born 12.03.2019"), to leave out
+    Mum, Dad, saints, famous names, teams and places, and to list a Roman-numeral date or a name
+    in another alphabet twice: as written, and in figures or English letters.
+  - The list is used for that one check and dropped. It is never stored, printed or put in a
+    reason, because `state.json`, the run log and the commit message are public. A caption that is
+    turned away is never quoted in its reason either.
+  - **The check is only as good as the list.** A name Claude copies but does not list is still
+    published. So is a date reworded with a two-figure year, or one letter standing alone.
+  - A harmless photo can be kept off: a tattoo of the name Rose, with a rose, whose caption says
+    "rose". Her own line always gets a photo on, and is never filtered.
+  An earlier net that guessed names and dates from the shape of the words was dropped on
+  9 November 2026: two rounds of review each found captions it garbled.
 
 It adds the photo to the top of "Recent work" on the home page (the oldest drops off after twelve)
 and to its subject pages, rebuilds with `--final`, commits to `main`, and GitHub Pages publishes.
